@@ -1,13 +1,22 @@
 import sys
 import itertools 
 
-#TODO: from argv/argc
 #TODO: not use eval
-#TODO: use permutations
 
+def usage():
+    print("python 6-1.py answer item1 item2 [item3] ...")
+    
+if (len(sys.argv) <= 3):
+    usage()
+    exit(0)
+
+#item = [3 ,1 ,3 ,6]
+#answer = 8 
+
+answer = int(sys.argv[1])
+item = [int(x) for x in sys.argv[2:]]
+print("{0} = {1}".format(item, answer))
 op = [ '+' ,'-' ,'*' ,'/' ]
-item = [3 ,1 ,3 ,6, 2]
-answer = 8 
 
 show_all = False
 op_radix = len(op)
@@ -18,7 +27,7 @@ associations = list(itertools.permutations(range(op_exp)))
 ass_count = len(associations)
 
 print("count of operation and association is {0} {1}".format(op_count, ass_count))
-
+   
 def increase_index(index,radix,exp):
     index[0] += 1
     for i in range(exp):        
