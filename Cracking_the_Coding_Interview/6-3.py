@@ -1,6 +1,6 @@
 import copy
   
-#reduce steps if go back
+#add the code to evaluate performance speed up
 #by argv and enlarge Jugs #  
 class Jug:
 
