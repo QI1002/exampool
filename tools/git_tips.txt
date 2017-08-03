@@ -1,0 +1,12 @@
+[git command]
+1. mirror a local repo to remote repo (ex: https://github.com/QI1002/exampool.git)
+   > goto the local repo folder 
+   > goto it's .git folder 
+   > type 'git push --mirror https://github.com/QI1002/exampool.git' for example
+   but it can change the author 
+2. generate and apply the git patch file    
+   > 'git format-patch -100' to generate patch files from recent 100 commits (ex:0001-the-draft-version-to-use-to-get-answer-from-numbers.patch, ..)
+   > 'git am 0001-the-draft-version-to-use-to-get-answer-from-numbers.patch' to apply the first earlier patch
+3. change the author and date for a specific commit
+   > git commit --amend --reset-author --no-edit --date="Fri Jul 21 12:21:57 2017 +0800"  
+   
