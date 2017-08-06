@@ -50,14 +50,14 @@ def rotateCW(matrix):
 
 dim = 7
 offset = 10
-sample = genMatrix(7, 10)
+sample = genMatrix(dim, offset)
 printMatrix(sample)
 print("=================")
 sampleCCW = list(sample)
-rotateCCW(list(sampleCCW))
+rotateCCW(sampleCCW)
 printMatrix(sampleCCW)
 print("=================")
-sample = genMatrix(7, 10)
+sample = genMatrix(dim, offset)
 sampleCW = list(sample)
-rotateCW(list(sampleCW))
+rotateCW(sampleCW)
 printMatrix(sampleCW)
