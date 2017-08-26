@@ -2,7 +2,8 @@
 
 1. notice python instance problem
 2. function is refer by object 
-3. 
+3. array index
+4. typo or update to use different variable
 
 REFINE:
 1. 20-9.py
@@ -10,10 +11,18 @@ REFINE:
 3. 
 
 TODO: 
-1. ¹ïµª®×
+1. check the solution of cracking ...
 2. as utility
+3. time measurement
 
 NOTE: 
 > 4-6: no solution 
 > 19-9 : XML parser
 > 20-7,20-8.py : improve string search 
+
+HANGOUT:
+0. add the solutions of remaine problem (cracking ...)s
+1. the book study (algo in C++, cracking..)
+2. leetcode practice
+3. check PTT/BBS interview info 
+4. check solution in cracking ??
