@@ -10,21 +10,21 @@ def reverseStr(strValue):
     count = 0
     while(strValue[count] != '\0'):
         count += 1
-        
+
     for i in range(count//2):
         swap(strValue, i, count-i-1)
-        
-    result = ""    
+
+    result = ""
     for i in range(count):
         result = result+ strValue[i]
-            
-    return result    
+
+    return result
 
 def appendZero(strValue):
     return strValue + '\0'
-    
-value = appendZero("abc")    
+
+value = appendZero("abc")
 print("The reverse string of {0} is {1}".format(value, reverseStr(value)))
-                
-value = appendZero("dormitory")    
+
+value = appendZero("dormitory")
 print("The reserve string of {0} is {1}".format(value, reverseStr(value)))

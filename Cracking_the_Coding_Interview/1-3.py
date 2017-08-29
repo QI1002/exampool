@@ -18,8 +18,27 @@ def removeDuplicateStr(strValue):
 
     return result
 
+def removeDuplicateStrNew(strValue):
+    strValue = list(strValue)
+    mask = 0
+    count = len(strValue)
+    result = []
+    for i in range(count):
+        c = ord(strValue[i]) - ord('a')
+        if ((mask >> c) & 0x1) == 0:
+            result.append(strValue[i])
+            mask |= (1 << c)
+
+    return "".join(result)
+
+method = removeDuplicateStrNew
+#method = removeDuplicateStr
+
 value = "abc"
-print("The remove duplicate string of {0} is {1}".format(value, removeDuplicateStr(value)))
+print("The remove duplicate string of {0} is {1}".format(value, method(value)))
+
+value = "aaaaa"
+print("The remove duplicate string of {0} is {1}".format(value, method(value)))
 
 value = "dormitory"
-print("The remove duplicate string of {0} is {1}".format(value, removeDuplicateStr(value)))
+print("The remove duplicate string of {0} is {1}".format(value, method(value)))

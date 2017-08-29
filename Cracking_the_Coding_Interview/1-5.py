@@ -11,4 +11,3 @@ def replaceSpace(strValue):
 
 value = "this is just a example"
 print("The replace string of {0} is {1}".format(value, replaceSpace(value)))
-        

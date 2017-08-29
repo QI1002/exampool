@@ -37,7 +37,7 @@ def swapCW(square,x,d,count):
     square[count-1-d][count-1-x-d] = square[d+x][count-1-d]
     square[d+x][count-1-d] = square[d][d+x]
     square[d][d+x] = tmp
-    
+
 def rotateCW(matrix):
     count = len(matrix)
     half = count // 2
