@@ -30,11 +30,11 @@ def deletelistbyNode(head, node):
             if (head == node):
                 head = head.next
             else:
-                deletelistbyPrev(prev)     
+                deletelistbyPrev(prev)
         prev = n
         n = prev.next
     return head
-    
+
 def countlist(head):
     count = 0
     n = head
@@ -42,8 +42,8 @@ def countlist(head):
         count += 1
         n = n.next
     return count
-    
-# head => 2 => 3 => 0 , so index 0 => 2 , index 1 => 3           
+
+# head => 2 => 3 => 0 , so index 0 => 2 , index 1 => 3
 def findHeadK(head, k):
     count = 0
     n = head
@@ -53,21 +53,42 @@ def findHeadK(head, k):
         count += 1
         n = n.next
     return 0
-     
+
 def findTailK(head, k):
     count = countlist(head)
     if (k >= count):
         return 0
     else:
-        return findHeadK(head, count-1-k)    
-    
-values = [ 3, 5, 2, 1, 4 ]
+        return findHeadK(head, count-1-k)
+
+def deleteMiddle(head):
+    count = countlist(head)
+    m = count // 2
+    n = findHeadK(head, m)
+    return deletelistbyNode(linkhead, n)
+
+def deleteMiddleNew(head):
+    p1 = p2 = head
+    while(p2 != 0):
+        p2 = p2.next
+        if (p2 == 0 or p2.next == 0):
+           p1.next = p1.next.next
+           break
+        else:
+           p2 = p2.next
+           p1 = p1.next
+
+
+values = [ 6, 3, 5, 2, 1, 4 ]
 linkhead = linklist(values)
+printlist(linkhead)
+print("====================")
+khead = deleteMiddleNew(linkhead)
 printlist(linkhead)
 print("====================")
 index = 1
 khead = findTailK(linkhead, index)
-print("the tail index {0} = {1}".format(index, "NULL" if khead == 0 else khead.data))        
+print("the tail index {0} = {1}".format(index, "NULL" if khead == 0 else khead.data))
 print("====================")
 linkhead = deletelistbyNode(linkhead, 0)
 printlist(linkhead)
@@ -77,7 +98,7 @@ printlist(linkhead)
 print("====================")
 index = 0
 khead = findHeadK(linkhead, index)
-print("the head index {0} = {1}".format(index, "NULL" if khead == 0 else khead.data))        
+print("the head index {0} = {1}".format(index, "NULL" if khead == 0 else khead.data))
 print("====================")
-linkhead = deletelistbyNode(linkhead, khead) 
+linkhead = deletelistbyNode(linkhead, khead)
 printlist(linkhead)

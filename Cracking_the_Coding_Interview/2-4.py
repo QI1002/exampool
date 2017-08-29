@@ -16,7 +16,7 @@ def printlist(head):
     while(n != 0):
         print(n.data)
         n = n.next
-        
+
 def linklist(ll):
     ll = ll[::-1]
     count = len(ll)

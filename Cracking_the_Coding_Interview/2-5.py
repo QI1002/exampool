@@ -73,10 +73,26 @@ def isCycle(head):
             return n1
     return 0
 
+# if a,b means no repeat items = a , repeat items = b
+# 1. if a < b then it will met in the b-a repeat node due to a+b+(b-a) = 2(a+(b-a))
+# 2. if a > b then it will met in the 2b-a repeat node  due to a+2b+(2b-a) = 2(a+(2b-a))
+# 3. if a = b then it will met in the first repeat node due to a+b = a
+# so no matter 1,2,3 case, we can met together from met point and head
+
+def findFirstCycleNew(head):
+    n2 = isCycle(head)
+    if (n2 == 0):  return 0
+    n1 = head
+    while(n2 != n1):
+        n2 = n2.next
+        n1 = n1.next
+
+    return n1
+
 values = [ 1, 2, 3, 4, 5, 6, 7 ]
 for i in range(len(values)):
     linkhead = linklist(values)
-    printlist(linkhead)
+    #printlist(linkhead)
     print("====================")
     index = i
     khead = findTailK(linkhead, index)
@@ -84,7 +100,7 @@ for i in range(len(values)):
     print("====================")
     #khead = 0
     attachTail(linkhead, khead)
-    cyclehead = isCycle(linkhead)
+    cyclehead = findFirstCycleNew(linkhead)
     print("the cycle node = {0}".format("NULL" if cyclehead == 0 else cyclehead.data))
     cyclehead = findFirstCycle(linkhead)
     print("the first cycle node = {0}".format("NULL" if cyclehead == 0 else cyclehead.data))
