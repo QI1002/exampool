@@ -38,8 +38,31 @@ class queue:
 
         return result
 
+class queueNew:
+    def __init__(self):
+        self.stackA = stack()
+        self.stackB = stack()
+
+    def put(self, data):
+        self.stackA.push(data)
+
+    def get(self):
+        if (self.stackB.isEmpty() == False):
+            return self.stackB.pop()
+
+        if (self.stackA.isEmpty()):
+            return None
+
+        while(not self.stackA.isEmpty()):
+            v = self.stackA.pop()
+            self.stackB.push(v)
+
+        return self.stackB.pop()
+
+
 values = [ 3, 5, 2, 1, 4 ]
-myqueue = queue()
+#myqueue = queue()
+myqueue = queueNew()
 for i in range(len(values)):
     myqueue.put(values[i])
     print("after put {0}".format(values[i]))
