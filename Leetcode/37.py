@@ -47,33 +47,41 @@ def updateExists(exists, i, j):
     exists[18+(i/3)*3+(j/3)] += 1
     return list(exists)
 
-def getSelection(i, j, index, exists):
-    first1 = i
-    second1 = 9 + j
-    third1 = 18 + 3*(i/3) + j/3
-    first2 = 0 if (first1 == index) else exists[first1]        
-    second2 = 0 if (second1 == index) else exists[second1]
-    third2 = 0 if (third1 == index) else exists[third1]
+def getSelection(i, j, board, exists):
+    first = i
+    second = 9 + j
+    third = 18 + 3*(i/3) + j/3
+    
+    remain = [ i for i in range(1,10,1) ]
+    here = getboarddata(board, first)
+    for i in here: 
+        if (i in remain): remain.remove(i)             
+    here = getboarddata(board, second)
+    for i in here: 
+        if (i in remain): remain.remove(i)
+    here = getboarddata(board, third)
+    for i in here: 
+        if (i in remain): remain.remove(i)
+    
+    return remain 
 
-    if (first2 > second2 and first2 > third2): return first1, first2
-    if (second2 > first2 and second2 > third2): return second1, second2
-    return third2, third1 
-
+debug = 1
 def findnext(index, board, exists):
+    global debug 
 
     positions = []
 
     if (index < 9):
         for i in range(9):
             if (board[index][i] == 0):
-                p, c = getSelection(index, i, index, exists) 
-                positions.append((index, i, p, c))
+                r = getSelection(index, i, board, exists) 
+                positions.append((index, i, r))
     else: 
         if (index < 18):
             for i in range(9):
                 if (board[i][index-9] == 0):
-                    p, c = getSelection(i, index-9, index, exists) 
-                    positions.append((i, index-9, p, c))
+                    r = getSelection(i, index-9, board, exists) 
+                    positions.append((i, index-9, r))
         else:
             k = index - 18 
             for i in range(3):
@@ -81,31 +89,23 @@ def findnext(index, board, exists):
                     y = (k/3)*3+i
                     x = (k%3)*3+j
                     if (board[y][x] == 0): 
-                        p, c = getSelection(y, x, index, exists)
-                        positions.append((y, x, p, c))
+                        r = getSelection(y, x, board, exists)
+                        positions.append((y, x, r))
 
     if (len(positions) == 0):
-        return (-1,-1), []
+        print("xxxx")
+        if (debug): 
+            printboard(board)
+            debug = 0
+        return (-1,-1, [])
 
-    max = 0
+    min = 0
     for i in range(len(positions)):   
-        if (positions[i][2] < positions[max][2]):
-            max = i
-   
-    print((positions, max)) 
-    remain = [ i for i in range(1,10,1) ]
-    here = getboarddata(board, index)
-    print(here)
-    for i in here: 
-        if (i in remain): remain.remove(i)             
-    c = positions[max][3]
-    print(c)
-    there = getboarddata(board, c)
-    print(there)
-    for i in there: 
-        if (i in remain): remain.remove(i)
-    
-    return (positions[max][0], positions[max][1]), remain 
+        if (len(positions[i][2]) < len(positions[min][2])):
+            min = i
+
+    print(("====",positions, min, index))   
+    return positions[min] 
 
 
 def sudoku(board, exists = None):
@@ -113,21 +113,25 @@ def sudoku(board, exists = None):
     if (exists == None): 
         exists = checkexists(board)
 
-    max = 0
+    max = -1
     for i in range(len(exists)):
+        if (exists[i] == 9): continue
+        if (max == -1): 
+            max = i
+            continue  
         if (exists[max] < exists[i]):
             max = i
+    
+    print((max, exists))
+    if (max == -1): return board
 
-    if (exists[max] == 9):
-        return board
-
-    (i,j), candidates = findnext(max, board, exists)
-    print(max,(i,j), candidates)
+    i, j, candidates = findnext(max, board, exists)
     for k in range(len(candidates)):
-        exists = updateExists(exists, i, j)
-        new_board = copy.deepcopy(board) if (k != 0) else board
-        board[i][j] = candidates[k]
-        result = sudoku(board, exists)
+        #new_exists = updateExists(exists, i, j)
+        new_board = copy.deepcopy(board)
+        new_board[i][j] = candidates[k]
+        new_exists = checkexists(new_board)
+        result = sudoku(new_board, new_exists)
         if (result != None): return result
     
     return None
