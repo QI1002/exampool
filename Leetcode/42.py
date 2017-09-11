@@ -10,7 +10,7 @@ def findPeak(data):
         m = 0
         if (data[i] < data[i-1]): m = -1
         if (data[i] > data[i-1]): m = 1
-        
+
         if (flag == 0 and m == -1):
             peak.append(i-1)
             flag = 1
@@ -35,10 +35,10 @@ def findVolume(data):
         for j in range(peaks[i-1]+1, peaks[i], 1):
            vol += (min - data[j])
     return vol
-        
+
 sample0 = [0,1,0,2,1,0,1,3,2,1,2,1,2]
 print(findVolume(sample0))
 sample1 = [1,0,1,0,1]
 print(findVolume(sample1))
-          
-          
+
+

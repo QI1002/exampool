@@ -1,5 +1,6 @@
 
 #41. First Missing Positive
+# don't consider the case with duplicated items
 
 import random
 def findLossPositive(data, count = 10):
@@ -13,14 +14,14 @@ def findLossPositive(data, count = 10):
 
         slots = [ 0 for i in range(count) ]
         p = (maxvalue - minvalue + count - 1) // count
-       
-        print((p, minvalue, maxvalue)) 
+
+        print((p, minvalue, maxvalue))
         for i in data:
-            if (i <= minvalue or i > maxvalue): continue 
+            if (i <= minvalue or i > maxvalue): continue
             index = (i-minvalue-1)/p
             slots[index] += 1
-      
-        print(slots) 
+
+        print(slots)
         if (p == 1):
             for i in range(maxvalue-minvalue):
                 if (slots[i] == 0): return (i+1)+minvalue
@@ -31,14 +32,14 @@ def findLossPositive(data, count = 10):
                 if (slots[j] == (maxvalue - j*p)):
                     return maxvalue + 1
                 # maxvalue keep the same
-                minvalue += j*p 
-                break    
+                minvalue += j*p
+                break
             else:
-                if (slots[j] != p): 
+                if (slots[j] != p):
                     minvalue += j*p
                     maxvalue = minvalue + p
                     break
-             
+
 def generate(n, m):
 
     remain = [i for i in range(n)]
@@ -51,10 +52,10 @@ def generate(n, m):
         result.insert(index, random.randint(n, n+100))
 
     return result, remain[0]
-               
+
 sample0 = [3,4,-1,6,-2,1]
 sample1 = [3,4,-1,6,-2,1,12,7,8,9,2,5]
-sample2 = [3,4,-1,6,-2,1,8,9,7,-3,-4,2,5,10,333]  
+sample2 = [3,4,-1,6,-2,1,8,9,7,-3,-4,2,5,10,333]
 sample, answer = generate(66, 7)
 print((sample, answer))
 print(findLossPositive(sample))
