@@ -18,44 +18,7 @@ def search(points, p):
             else:
                 r = m
 
-def line_merge_2(lines, target):
-    count = len(lines)
-    points = []
-    for i in range(count):    
-        points.append(lines[i][0])
-        points.append(lines[i][1])
-
-    s = search(points, target[0])
-    e = search(points, target[1])
-    #print((s,e,points))
-
-    if (s == e):
-        if (e < len(points) and points[e] == target[1]):
-            lines[e//2] = (target[0], lines[e//2][1])
-        else:
-            lines.insert(s//2, target)
-        return lines
-
-    ss = s//2 
-    if ((s & 0x01) == 0):  lines[ss] = (target[0], lines[ss][1])
-    ee = (e-1)//2
-    if ((e & 0x01) == 0):  
-        if (e < len(points) and points[e] == target[1]):
-            ee = e//2
-            lines[ee] = (target[0], lines[ee][1]) 
-        else: 
-            lines[ee] = (lines[ee][0], target[1])
-
-    for i in range(ss+1, ee, 1):
-        lines.pop(ss+1)
-    
-    if ( (ss+1) < len(lines) and lines[ss][1] == lines[ss+1][0]):
-        lines[ss] = (lines[ss][0], lines[ss+1][1])
-        lines.pop(ss+1)
-    
-    return lines
-
-def line_merge(lines, target):
+def line_merge2(lines, target):
     count = len(lines)
     points = []
     for i in range(count):    
@@ -106,7 +69,62 @@ def line_merge(lines, target):
         result.append(target)
 
     return result
- 
+
+def line_overlay2(lines, p, pp, ii):
+    if (pp//2 != ii): return False
+    even = ((pp & 0x1) == 0)
+    if (even and lines[pp//2][0] == p): return True
+    return (even == False)
+
+def line_overlay(lines, p, pp, ii):
+    return (lines[ii][0] <= p and lines[ii][1] >= p) 
+
+def line_merge(lines, target):
+    count = len(lines)
+    points = []
+    for i in range(count):
+        points.append(lines[i][0])
+        points.append(lines[i][1])
+
+    s = search(points, target[0])
+    e = search(points, target[1])
+    result = []
+    newline = None
+
+    for i in range(count):
+        overlay = False
+        line = lines[i]
+        if (line_overlay(lines, target[0], s, i)):
+            overlay = True
+            newline = line
+        else:
+           if (target[0] < line[0] and s == 2*i):
+               newline = (target[0], line[1])
+        #print((newline, line, e))
+        if (line_overlay(lines, target[1], e, i)):
+            newline = (newline[0], line[1])
+            result.append(newline)
+            overlay = True
+            newline = None
+        else:
+            if (target[1] < lines[0] and e == 2*i):
+                newline = (newline[0], target[1])
+                result.append(newline)
+                newline = None
+        #print((newline, overlay, result, line, s))
+        if (newline == None and overlay == False):
+            result.append(line)
+
+    if (newline != None):
+        result.append((newline[0], target[1]))
+
+    if (s >= len(points)):
+        result = list(lines)
+        result.append(target)
+
+    return result
+               
+
 lines = [(2,3),(5,8),(11,13)]
 print(line_merge(copy.deepcopy(lines), (9,10)))
 print(line_merge(copy.deepcopy(lines), (9,11)))
