@@ -1,22 +1,6 @@
 
 #115. Distinct Subsequences
 
-def distinct(s2):
-    count = len(s2)
-    freq1 = [] 
-    freqm = [] 
-    for i in range(count):
-        inM = s2[i] in freqm
-        in1 = s2[i] in freq1
-        if (in1 == True): 
-            freq1.remove(s2[i])
-            freqm.append(s2[i])
-        else:
-            if (inM == False):
-                freq1.append(s2[i])
-
-    return freq1
-
 def distinctNum(s1, s2):
     count1 = len(s1)
     count2 = len(s2)
@@ -40,7 +24,7 @@ def distinctNum(s1, s2):
                     result.append(t)
         start += 1
 
-    print(result)
+    #print(result)
     hit = 0
     for x in result:
         y = list(s1)  
@@ -54,5 +38,3 @@ def distinctNum(s1, s2):
 s = "rabbbiity"
 t = "rabbit"
 print(distinctNum(s, t))
-print(distinct(t))
-            
