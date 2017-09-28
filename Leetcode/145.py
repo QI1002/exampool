@@ -52,31 +52,49 @@ def getTreePreorder(head):
         n = n.right
     return result
 
-def getTreePostorder(head):
+def getTreePostorder2(head):
     
+    if (head == 0): return []
+    a = getTreePostorder(head.left)
+    b = getTreePostorder(head.right)    
+    c = list(a)
+    c.extend(b)
+    c.append(head.data)
+    return c
+
+def getTreePostorder(head):
+
     s = stack()
-    t = stack()
-    result = []
-    if (head == 0): return result
+    ss = stack()
 
-    n = head
-    while(True):
-        while(n != 0):
-            s.push(n)
-            n = n.left
+    if (head == 0): return []
 
-        if (s.isEmpty()): break
+    s.push(head)
+    while(not s.isEmpty()):
         n = s.pop()
-        t.push(n)
+        ss.push(n.data)
+        if (n.right != 0): s.push(n.right)
+        else: ss.push([])
+        if (n.left != 0): s.push(n.left)
+        else: ss.push([])
+        while(len(ss.body) >= 3): 
+            b = ss.pop()
+            a = ss.pop()
+            c = ss.pop()
+ 
+            if (type(b) != list or type(a) != list or type(c) != int):
+                ss.push(c)
+                ss.push(a)
+                ss.push(b)
+                break
 
-        if (n.right == 0): 
-            while(not t.isEmpty()): 
-                result.append(t.pop().data)
-            
-        n = n.right
-
-    return result            
-          
+            d = list(a)
+            d.extend(b)
+            d.append(c)
+            ss.push(d)
+ 
+    return ss.pop()
+    
 def genBinaryTree(data):
     
     if (len(data) == 0): return 0
@@ -98,8 +116,8 @@ def genBinaryTree(data):
     
     return root
  
-root = genBinaryTree(list(range(6)))
+root = genBinaryTree(list(range(7)))
 root.show()
 print(getTreePreorder(root))
 print(getTreePostorder(root))
-#print(findTreeRecover(root))
+print(getTreePostorder2(root))
