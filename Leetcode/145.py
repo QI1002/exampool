@@ -1,7 +1,6 @@
 
 #145. Binary Time Postorder Traversal
 
-import random
 class stack:
     def __init__(self):
         self.body = []
