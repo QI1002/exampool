@@ -29,9 +29,9 @@ def genBinaryTree(data):
         half = count // 2
         root = tree(data[half])
         root.left = genBinaryTree(data[0:half])
-        root.right = genBinaryTree(data[half+1:])  
+        root.right = genBinaryTree(data[half+1:])
         return root
-        
+
 def printTree(root):
     trace = stack()
     trace.push(root)
@@ -40,8 +40,8 @@ def printTree(root):
         left = "NULL" if item.left == 0 else item.left.data
         right = "NULL" if item.right == 0 else item.right.data
         print("{0}:{1},{2}".format(item.data, left, right))
-        if (item.left != 0): trace.push(item.left)            
+        if (item.left != 0): trace.push(item.left)
         if (item.right != 0): trace.push(item.right)
-        
+
 target = genBinaryTree(list(range(7)))
 printTree(target)

@@ -74,9 +74,12 @@ def insertion_sort(data, h = 1):
 def bubble_sort(data):
     count = len(data)    
     for i in range(count, -1, -1):
+        skip = True
         for j in range(1, count, 1):
             if (data[j-1] > data[j]):
                 swap(data, j-1, j)
+                skip = False
+        if (skip): break
           
 def shell_sort(data):
     
@@ -106,10 +109,10 @@ def distributive_sort(data):
 
 #sort_method = selection_sort
 #sort_method = insertion_sort
-#sort_method = bubble_sort
+sort_method = bubble_sort
 #sort_method = shell_sort
 #sort_method = distributive_sort
-sort_method = selection_sort_indirect
+#sort_method = selection_sort_indirect
 
 target1 = genShuffleData(100)
 target2 = genRandomData(100, 20)

@@ -27,7 +27,7 @@ def printlist(head):
     while(n != 0):
         print(n.data)
         n = n.next
-          
+
 def genBinaryTree(data):
     count = len(data)
     if (count == 0):
@@ -36,17 +36,17 @@ def genBinaryTree(data):
         half = count // 2
         root = tree(data[half])
         root.left = genBinaryTree(data[0:half])
-        root.right = genBinaryTree(data[half+1:])  
+        root.right = genBinaryTree(data[half+1:])
         return root
-        
+
 def treeDepth(target):
     if (target == 0):
         return 0
-        
+
     depth1 = treeDepth(target.left)
     depth2 = treeDepth(target.right)
-    return max(depth1,depth2)+1    
-        
+    return max(depth1,depth2)+1
+
 def printTree(root):
     trace = stack()
     trace.push(root)
@@ -55,14 +55,14 @@ def printTree(root):
         left = "NULL" if item.left == 0 else item.left.data
         right = "NULL" if item.right == 0 else item.right.data
         print("{0}:{1},{2}".format(item.data, left, right))
-        if (item.left != 0): trace.push(item.left)            
+        if (item.left != 0): trace.push(item.left)
         if (item.right != 0): trace.push(item.right)
 
 def addlink(item, depth, result):
     if (len(result) == depth):
         result.append([])
-    
-    result[depth].append(item)    
+
+    result[depth].append(item)
 
 def addlink2(item, depth, result):
     if (len(result) == depth):
@@ -73,28 +73,28 @@ def addlink2(item, depth, result):
 
 def linkTranveseTree(root, isLink = False):
 
-    add = addlink2 if isLink else addlink 
+    add = addlink2 if isLink else addlink
     result = []
     depth = 0
     trace = stack()
     trace.push((root, depth))
     add(root, depth, result)
-        
+
     while(not trace.isEmpty()):
         v = trace.pop()
         item = v[0]
         depth = v[1]
-        
-        if (item.left != 0): 
+
+        if (item.left != 0):
             trace.push((item.left, depth+1))
             add(item.left, depth+1, result)
-            
-        if (item.right != 0): 
+
+        if (item.right != 0):
             trace.push((item.right, depth+1))
             add(item.right, depth+1, result)
-            
+
     return result
-            
+
 target = genBinaryTree(list(range(7)))
 printTree(target)
 result = linkTranveseTree(target)
