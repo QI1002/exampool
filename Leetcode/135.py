@@ -2,7 +2,7 @@
 #135. Candy
 
 
-def candy(data):
+def candy2(data):
     children = list(data)
     upper = []
     lower = []
@@ -75,6 +75,53 @@ def candy(data):
     #return sum(result), result       
     return sum(result[0:-1]), result[0:-1]
     
+def candy(children):
+
+    state = [ 0 for i in range(len(children)) ]
+    prev = 0
+    for i in range(1, len(children), 1):
+        if (children[i-1] != children[i]):
+            state[i] = 1 if (children[i-1] < children[i]) else -1
+            prev = state[i]
+        else:  
+            state[i] = prev
+            
+    if (state[0] == 0):
+        prev = 0
+        for i in range(len(children)-1, -1, -1):
+            if (state[i] != 0): prev = state[i]
+            else: state[i] = prev * -1
+        if (prev == 0): 
+            return [ 1 for i in range(len(children)) ]    
+                         
+    state.append(state[len(children)-1]* -1)                  
+    #print(state)
+
+    result = [ 1 for i in range(len(children)) ] 
+    for i in range(len(children)):
+        if (state[i] == -1 and state[i+1] == 1):
+            start = i
+            c = 1
+            for j in range(start-1, -1, -1):
+                if (state[j] != -1): break
+                if (children[j] > children[j+1]): c += 1 
+                result[j] = c
+                
+            if (start != 0 and state[j] == 1):
+                c += 1
+                if (result[j] < c): result[j] = c
+                for k in range(j-1, -1, -1):
+                    if (result[k] == 1 and state[k] == 1):
+                        result[k] = c
+                
+            c = 1    
+            for j in range(start+1, len(children), 1):
+                if (state[j] != 1): break 
+                if (children[j] > children[j-1]): c += 1
+                result[j] = c 
+                    
+    return result   
+            
 children = [ 2,2,2,2,1,1 ]
 print("{0}=>{1}".format(children, candy(children)))
 children = [ 1,1,2,2,2,2 ]
@@ -97,6 +144,6 @@ print("{0}=>{1}".format(children, candy(children)))
 
 children = [ 4,3,2,1,2,3 ]
 print("{0}=>{1}".format(children, candy(children)))
-children = [ 4,3,1,2,3,4 ]
+children = [ 3,2,1,2,3,4 ]
 print("{0}=>{1}".format(children, candy(children)))
 
