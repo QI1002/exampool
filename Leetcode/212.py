@@ -2,10 +2,16 @@
 #212. Word Search II
 
 def match(s, words):
+    ever1 = False
+    ever2 = False
     for i in range(len(words)):
         count = len(s)
         if (len(words[i]) >= count and words[i][:count] == s):
-            return 2 if (len(words[i]) == count) else 1
+            if (len(words[i]) == count): ever2 = True
+            else: ever1 = True
+
+    if (ever2): return 2
+    if (ever1): return 1
     return 0
 
 def wordSearch(data,words):
@@ -47,19 +53,23 @@ def wordSearch(data,words):
                     path.extend(t3[j][i+1])
 
                 #print((next, path))
-                for n in range(len(next)-1,-1,-1):
-                    path[n] = list(path[n])
-                    path[n].append((j,i))
-                    next[n] += c
-                    r = match(next[n], words)
-                    if (r == 0):
-                        next.pop(n)
-                        path.pop(n)
-                    if (r == 2):
-                        result.append((next[n], path[n]))
+                next2 = []
+                path2 = []
+                for n in range(len(next)):
 
-                t2[j][i] = next
-                t4[j][i] = path
+                    if ((j,i) in path[n]): continue
+
+                    sample = next[n]+c
+                    r = match(sample, words)
+                    if (r == 0): continue
+
+                    next2.append(sample)
+                    path2.append(list(path[n]))
+                    path2[-1].append((j,i))
+                    if (r == 2): result.append((next2[n], path2[n]))
+
+                t2[j][i] = next2
+                t4[j][i] = path2
 
         #print((k, t2, result))
         tmp = t2
