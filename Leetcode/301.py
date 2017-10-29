@@ -9,58 +9,57 @@ def removeInvalidP(s):
     
     for i in range(count):
         for j in range(count):
-            m[i][j] = [[]]
+            m[i][j] = [""]
             
     for i in range(count):
         for j in range(count-i):
             start = j
             end = j + i 
             if (i == 0):
-                m[start][end] = [[start]]
+                m[start][end] = [""]
             else: 
                 if (i == 1):
-                    if (s[start] != "(" or s[end] != ")"):
-                        m[start][end] = [[start, end]]
+                    if (s[start] == "(" and s[end] == ")"):
+                        m[start][end] = ["()"]                        
                 else: 
                     if (s[start] == ")"):
-                        m[start][end] = []
-                        for x in m[start+1][end]:
-                            y = list(x)
-                            y.insert(0, start)
-                            m[start][end].append(y)
+                        m[start][end] = list(m[start+1][end])
                     else:
                         if (s[start+1] == ")"):
-                            m1 = copy.deepcopy(m[start+2][end])
+                            m1 = [ "()"+x for x in m[start+2][end] ]
                         else:
-                            m1 = []
-                            for x in m[start+1][end]:
-                                y = list(x)
-                                y.insert(0, start)
-                                m1.append(y)
+                            m1 = list(m[start+1][end])
 
                         if (s[end] == ")"):
-                            m2 = copy.deepcopy(m[start+1][end-1])
+                            m2 = [ "("+x+")" for x in m[start+1][end-1] ]
+                            if (s[end-1] == "("): 
+                                m3 = [ x + "()" for x in m[start][end-2] ]                     
+                                if (len(m2) < len(m3)): m2 = m3
+                                if (len(m2) == len(m3)):
+                                    for x in m3: 
+                                        if (not x in m2): m2.append(x)                                    
                         else:
-                            m2 = []
-                            for x in m[start][end-1]:
-                                y = list(x)
-                                y.append(end)
-                                m2.append(y)
-                                           
+                            m2 = list(m[start][end-1])
+                   
                         if (len(m1[0]) == len(m2[0])):
-                            #print((start, end, m1, m2))
+                            for x in m2: 
+                                if (not x in m1): m1.append(x)
                             m[start][end] = m1
-                            m[start][end].extend(m2)
                         else:                        
-                            m[start][end] = copy.deepcopy(m2) if (len(m1[0]) > len(m2[0])) else copy.deepcopy(m1)
+                            m[start][end] = m1 if (len(m1[0]) > len(m2[0])) else m2
  
-    for i in range(count):
-        print(m[i])
-                               
+    #for i in range(count): print(m[i])                               
     return m[0][count-1]
         
-                        
-#print(removeInvalidP("(()"))
-print(removeInvalidP("())()"))
-#print(removeInvalidP("()())()"))
-#print(removeInvalidP("()()())"))
+
+sample = "(()"                         
+print("{0} => {1}".format(sample, removeInvalidP(sample)))
+
+sample = "())()"                  
+print("{0} => {1}".format(sample, removeInvalidP(sample)))
+
+sample = "()())()"                  
+print("{0} => {1}".format(sample, removeInvalidP(sample)))
+
+sample = "()()())"                  
+print("{0} => {1}".format(sample, removeInvalidP(sample)))
