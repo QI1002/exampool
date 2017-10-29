@@ -36,10 +36,24 @@ def countRangeSum(data, upper, lower):
         #print((base1, base2))
         base1 = base2 
         
-    return result
+    return sorted(result)
     
+def countRangeSum2(data, upper, lower):
+    count = len(data)
+    result = []
+    for i in range(count):
+        for j in range(i, count, 1):
+            s = 0
+            for k in range(i, j+1, 1):
+                s += data[k]                
+            countRangeAdd((i,j,s), result, upper, lower)    
+            
+    return sorted(result)
+            
 sample = [-2,5,-1]
 print(countRangeSum(sample, 2, -2))    
+print(countRangeSum2(sample, 2, -2))    
 
 sample = [-2,5,-1,-2]
 print(countRangeSum(sample, 2, -2))    
+print(countRangeSum2(sample, 2, -2))    
