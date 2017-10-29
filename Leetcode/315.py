@@ -44,7 +44,7 @@ def countSmaller2(data):
             start = i
             end = count if ((i+kk) > count) else i+kk
             if ((end-start) > k): 
-                print((ss, start, end-1, k))
+                #print((ss, start, end-1, k))
                 countSmallerMerge(data, ss, start, end-1, k)               
         k = kk
         
