@@ -20,13 +20,13 @@ def trapRain(blocks):
                 if (m[i][j] != 0): continue
                 mark = 0
                 s = blocks[i][j]
-                if (blocks[i-1][j] > s or m[i-1][j] != 0):
+                if (blocks[i-1][j] >= s or m[i-1][j] != 0):
                     mark += 1
-                if (blocks[i+1][j] > s or m[i+1][j] != 0):
+                if (blocks[i+1][j] >= s or m[i+1][j] != 0):
                     mark += 1
-                if (blocks[i][j-1] > s or m[i][j-1] != 0):
+                if (blocks[i][j-1] >= s or m[i][j-1] != 0):
                     mark += 1
-                if (blocks[i][j+1] > s or m[i][j+1] != 0):
+                if (blocks[i][j+1] >= s or m[i][j+1] != 0):
                     mark += 1
                 if (mark == 4): 
                     id += 1
@@ -79,7 +79,8 @@ def trapRain(blocks):
         for j in range(1, colc-1, 1):
             if (m[i][j] == 0): continue
             id = m[i][j]
-            vols += (bounds[id] - blocks[i][j])
+            if (bounds[id] > blocks[i][j]):
+                vols += (bounds[id] - blocks[i][j])
 
     return vols
 
@@ -93,8 +94,8 @@ print(trapRain(blocks))
 
 blocks = [
   [1,4,3,2,3,2],
-  [3,2,1,1,2,4],
-  [2,3,3,2,3,1]
+  [4,3,1,1,2,4],
+  [2,4,3,2,3,1]
 ]
 
 print(trapRain(blocks))
