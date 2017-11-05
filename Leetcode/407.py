@@ -1,5 +1,7 @@
 
 #407. Trapping Rain Water II
+#defect 1. can't find local min area exactly and maybe merge two areas
+#defect 2. if all area are the same
 
 def trapRain(blocks):
     colc = len(blocks[0])
@@ -96,6 +98,22 @@ blocks = [
   [1,4,3,2,3,2],
   [4,3,1,1,2,4],
   [2,4,3,2,3,1]
+]
+
+print(trapRain(blocks))
+
+blocks = [
+  [1,4,3,2,3,2],
+  [4,3,1,1,0,4],
+  [2,4,3,2,1,1]
+]
+
+print(trapRain(blocks))
+
+blocks = [
+  [1,4,3,2,3,2],
+  [4,1,1,1,1,4],
+  [2,4,3,2,1,1]
 ]
 
 print(trapRain(blocks))
