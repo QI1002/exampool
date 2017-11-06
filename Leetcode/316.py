@@ -1,40 +1,64 @@
 
 #316. Remove Duplicate Letters
 
+def getStr(s, m):
+    bit = [ 0 for i in range(len(s)) ]
+    for i in range(26):
+        if (m[i] < 0): continue
+        bit[m[i]] = 1
+
+    ss = ""
+    for i in range(len(s)):
+        if (bit[i] == 1): ss += s[i]
+    
+    return ss
+
 def betterRemove(s):
     h = [ [] for i in range(26) ]
-    m = [ -1 for i in range(26) ]    
+    m = [ -2 for i in range(26) ]    
     for i in range(len(s)):
         oo = ord(s[i]) - ord('a')
         h[oo].append(i)
         
-    print(h)
-    
+    #print(h)
+   
     for i in range(26):
         if (len(h[i]) == 0): 
-            m[i] = 0  # dummy
+            m[i] = -1  # dummy
             continue
         if (len(h[i]) == 1):
             m[i] = h[i][0]
-            
+                
     for i in range(26):        
-        if (m[i] >= 0): continue        
+        if (m[i] >= -1): continue        
         else:
-            start = h[i][0]
-            for j in range(0, len(h[i]), 1):
-                if (h[i][j] > end):
-                    start = h[i][j]
-            m.append(start)
-    
-    print(m)
-    ms = sorted(m)        
-    mm = [ s[i] for i in ms ]        
-    return "".join(mm)                 
+            result = []
+            for j in range(len(h[i])):
+                m[i] = h[i][j] 
+                ss = getStr(s, m)
+                result.append(ss)
+            sss = sorted(result)[0]
+            for j in range(len(h[i])):
+                if (sss == result[j]):
+                    break
+            m[i] = h [i][j]                     
+         
+    #print(m)
+    return getStr(s, m)                 
                 
 sample = "bcabc"    
 print(betterRemove(sample))
 
 sample = "cbacdcbc"    
+print(betterRemove(sample))
+
+sample = "cacdcbcec"
+print(betterRemove(sample))
+
+sample = "cadcbcec"
+print(betterRemove(sample))
+
+sample = "cadcbec"
 print(betterRemove(sample))
 
 """
