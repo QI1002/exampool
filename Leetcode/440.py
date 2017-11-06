@@ -5,7 +5,7 @@ def numFirst(n, k):
     result = []
     digits = 0
     bound = 1
-    while(bound <= n):
+    while((bound*k) <= n):
         result.append(bound)
         digits += 1
         bound *= 10
@@ -24,26 +24,37 @@ def numFirst(n, k):
 def smallOrder(n, k):
     k -= 1
     lower = 0
-    for i in range(1, 10, 1):
-        r = numFirst(n, i)
-        upper = lower + sum(r)
-        if (k >= lower and k < upper):
-            v = i
-            for j in range(len(r)):
-                upper = lower + r[j]
-                if (k >= lower and k < upper): 
-                    return v + (k - lower)
-                lower = upper
-                v *= 10
-        lower = upper
+    v = 0
+    while(True):
+        for i in range(10):
+            if (i == 0 and v == 0): continue
+            r = numFirst(n, v+i)
+            #print((v,i,r,lower))
+            upper = lower + sum(r)
+            if (k >= lower and k < upper):
+                v += i
+                for j in range(len(r)):
+                    upper = lower + r[j]
+                    if (k == lower): return v
+                    if (k > lower and k < upper):
+                        if ((j+1) == len(r)): 
+                            return v + (k - lower)                    
+                        else:
+                            break
+                    lower = upper
+                    v *= 10
+                break
+            lower = upper
         
     return None
 
-r = []
-for i in range(1, 101, 1):
-    r.append(str(i))
-    r = sorted(r)
-    for j in range(i):
-        c1 = smallOrder(i, j+1)
-        c2 = int(r[j])
-        if (c1 != c2): print((i, j, c1, c2))
+for i in range(1,15,1):
+    print(smallOrder(100,i))
+#r = []
+#for i in range(1, 101, 1):
+#    r.append(str(i))
+#    r = sorted(r)
+#    for j in range(i):
+#        c1 = smallOrder(i, j+1)
+#        c2 = int(r[j])
+#        if (c1 != c2): print((i, j, c1, c2))
