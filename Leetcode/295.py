@@ -75,7 +75,7 @@ class median:
             self.less.remove()
             self.more.add(-v)
          
-        print((self.more.heap[1:], self.less.heap[1:]))
+        #print((self.more.heap[1:], self.less.heap[1:]))
          
     def getMedian(self):
         if ((len(self.data) & 0x1) != 0):
