@@ -96,7 +96,18 @@ lfu.put(2, 4)
 lfu.put(3, 4)
 print(lfu.get(1))
 print(lfu.get(2))
-
+print("==========")
+lfu = lfuCache(2)
+lfu.put(1, 1)
+lfu.put(2, 2)
+print(lfu.get(1))
+lfu.put(3, 3)
+print(lfu.get(2))
+print(lfu.get(3))
+lfu.put(4, 4)
+print(lfu.get(1))
+print(lfu.get(3))
+print(lfu.get(4))
 
             
          
