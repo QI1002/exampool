@@ -1,20 +1,9 @@
 
 #514. Freedom Trail 
 
-def smallDist(s, r, c):
-    min = 2*len(r)
-    for i in range(len(r)):
-        if (r[i] != c): continue
-        if (abs(i-s) < min): 
-            min = abs(i-s) 
-        if ((len(r)-abs(i-s)) < min):
-            min = len(r)-abs(i-s)     
-            
-    return min
-            
 def trail(s, r, k):
-    if (len(k) == 1):
-        return smallDist(s, r, k[0])
+    if (len(k) == 0):
+        return 0
         
     min = 2*len(r)    
     for i in range(len(r)):
@@ -27,6 +16,10 @@ def trail(s, r, k):
             
 def trailbutton(r, k):
     return trail(0, r, k) + len(k)
+
+rings = "godding"
+keys = "gd"    
+print(trailbutton(rings, keys))
                 
 rings = "godding"
 keys = "gdio"    
