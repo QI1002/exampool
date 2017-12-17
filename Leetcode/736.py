@@ -22,6 +22,11 @@ def add_op(op1, op2, var):
     if (op2 in var): op2 = var[op2]
     return int(op1)+int(op2)
 
+def sub_op(op1, op2, var):
+    if (op1 in var): op1 = var[op1]
+    if (op2 in var): op2 = var[op2]
+    return int(op1)-int(op2)
+
 def mul_op(op1, op2, var):
     if (op1 in var): op1 = var[op1]
     if (op2 in var): op2 = var[op2]
@@ -53,10 +58,10 @@ def expr_div(s):
     return result
      
 def lisp(expr, var = {}):
+    op = { "add": add_op, "mul": mul_op, "let": let_op, "sub": sub_op }
     s = stack()
     t = stack()
     s.push(expr)
-    op1 = op2 = None
 
     while(not s.isEmpty()):
         expr = s.pop()
@@ -66,57 +71,38 @@ def lisp(expr, var = {}):
             r = expr_div(expr[5:-1])
             #print(r)
 
-            if (action == "add" or action == "mul"):
-                if (len(r) != 2): raise ValueError(expr[5:-1])
-                s.push(dict(var))
-                s.push(action)
-                s.push(r[0])
-                s.push(r[1])
-                continue
-
             if (action == "let"):
                 if (r[-1][0] != "("): s.push("("+r[-1]+")")
                 else: s.push(r[-1])
                 for i in range(len(r)-2,-1, -2):
-                    #s.push(dict(var))
                     s.push("let")
                     s.push(r[i-1])
                     s.push(r[i])
                 continue
 
-            key = expr[1:-1]
-            if (key in var): t.push(var[key])
-            else: t.push(None)
-            #print((key, var))                        
+            if (action in op):
+                if (len(r) != 2): raise ValueError(expr[5:-1])
+                s.push(dict(var))
+                s.push(action)
+                s.push(r[0])
+                s.push(r[1])
+            else:
+                key = expr[1:-1]
+                if (key in var): t.push(var[key])
+                else: t.push(None)
+                #print((key, var))
+ 
             continue
 
-        if (expr == "add"):
-            var = s.pop()
+        if (expr in op):
+            if (expr != "let"): var = s.pop()
             op1 = t.pop()
             op2 = t.pop()
-            rr = add_op(op1, op2, var)
+            rr = op[expr](op1, op2, var)
             op1 = op2 = None
-            s.push(str(rr))
-            continue
-               
-        if (expr == "mul"):
-            var = s.pop()
-            op1 = t.pop()
-            op2 = t.pop()
-            rr = mul_op(op1, op2, var)
-            op1 = op2 = None
-            s.push(str(rr))
-            continue 
-
-        if (expr == "let"):
-            #var = s.pop()
-            op1 = t.pop()
-            op2 = t.pop()
-            let_op(op1, op2, var)
-            op1 = op2 = None
-            continue
-
-        t.push(expr)
+            if (rr != None): s.push(str(rr))
+        else:       
+            t.push(expr)
     
     return t.pop()
 
@@ -128,5 +114,6 @@ print(lisp("(let x 2 (mul x 5))"))
 print(lisp("(let x 2 (mul x (let x 3 y 4 (add x y))))"))
 print(lisp("(let x 3 x 2 x)"))
 print(lisp("(let x 1 y 2 x (add x y) (add x y))"))
+print(lisp("(let x 1 y 2 x (sub x y) (sub x y))"))
 print(lisp("(let x 2 (add (let x 3 (let x 4 x)) x))"))
 print(lisp("(let a1 3 b2 (add a1 1) b2)"))
