@@ -84,7 +84,7 @@ def wall(grid, wx, wy, rowc, colc):
         if (len(n) > max): ms, max = k, len(n) 
     
     neighbor(seg[ms], data, wx, wy, rowc, colc, 0, True)
-    print((ms, seg))
+    #print((ms, seg))
     return ms, seg
 
 def wallall(grid):
@@ -104,7 +104,7 @@ def wallall(grid):
         for s in seg:
             n = neighbor(s, grid, wx, wy, rowc, colc, 0)
             for y, x in n: grid[y][x] = 1
-        print((wx,wy)) 
+        #print((wx,wy)) 
 
     count = 0
     for i in range(rowc):
@@ -135,3 +135,10 @@ grid3 = [[1,1,1,0,0,0,0,0,0],
          [1,1,1,0,0,0,0,0,0]]
 
 print(wallall(grid3))
+
+grid4 = [[0,0,0,0,0,0,0,0,0],
+         [0,1,1,0,1,1,0,1,1],
+         [0,0,0,0,0,0,0,0,0]]
+
+print(wallall(grid4))
+
