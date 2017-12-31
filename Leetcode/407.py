@@ -98,10 +98,17 @@ def localmin(data):
                     break              
 
     print(lmf)
+
+    for i in range(rowc):
+        for j in range(colc):
+            m = mask[i][j]
+            mask[i][j] = lmf[m] 
+
+    print(mask)
  
-grid = [ [ 3, 3, 1, 3, 3], 
+grid = [ [ 3, 3, 3, 3, 3], 
          [ 3, 1, 2, 1, 3],
-         [ 3, 1, 2, 1, 3],
+         [ 3, 1, 4, 1, 3],
          [ 3, 1, 2, 1, 3], 
          [ 3, 3, 3, 3, 3] ]
 
