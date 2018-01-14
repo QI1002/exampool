@@ -83,4 +83,6 @@ def smallDist(data, k):
 
 for j in range(1,7,1):
     print(smallDist([1,2,3,6], j))
-    
+   
+for j in range(1,4,1):
+    print(smallDist([1,3,1], j)) 
