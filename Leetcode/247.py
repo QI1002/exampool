@@ -1,5 +1,5 @@
 
-#247. Strobogrammatic Number I
+#247. Strobogrammatic Number II
 
 def allStro(n):
     mapping1 = { '8':'8', '1':'1' }
