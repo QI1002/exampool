@@ -1,57 +1,55 @@
 
 #269. Alien Dictionary 
 
+class stack:
+    def __init__(self):
+        self.body = []
+
+    def push(self, data):
+        self.body.append(data)
+
+    def pop(self):
+        if (len(self.body) == 0):
+            return None
+        else:
+            return self.body.pop()
+
+    def isEmpty(self):
+        return True if len(self.body) == 0 else False
+
 def getOrder(less):
     if (len(less) == 0): return ""
-    updated = True
-    while(updated):
-        updated = False
-        remove = []
-        for i in range(len(less)):
-            for j in range(i+1, len(less), 1):
-                a, b = less[i]
-                x, y = less[j]
-                if (a == x and (y, b) in less):
-                    remove.append((a,b))
-                    updated = True
-        for x in remove: less.remove(x) 
-        print(less)
+    aa = []
+    bb = []
+    for x in less:
+        if (not x[0] in aa): aa.append(x[0])
+        if (not x[1] in bb): bb.append(x[1])
+    cc = []    
+    for a in aa:
+        if (a in bb): 
+            cc.append(a)
+    for c in cc:    
+        aa.remove(c)
+        bb.remove(c)
+    #print((aa,bb))
+    if (len(aa) != 1 and len(bb) != 1):
+        raise ValueError("ambigous")
 
-    remind = []
-    order = ""
-    while(True):
-        for x in less:
-            a = x[0]
-            b = x[1]
-            if (a in order):
-                ai = order.index(a)
-                if (b in order):
-                    bi = order.index(b)
-                    if (bi < ai): raise ValueError("order is inconsistent")
+    a,b = aa[0], bb[0]
+    longest = ""
+    s = stack()
+    s.push(a)
+    while(not s.isEmpty()):
+        z = s.pop()
+        for x,y in less:
+            if (x == z[-1]):
+                zz = z+y
+                if (y == b and len(zz) > len(longest)):
+                    longest = zz  
                 else:
-                    if (ai == (len(order)-1)): order += b
-                    else: remind.append(x) 
-            else:
-                if (b in order):
-                    bi = order.index(b)
-                    if (bi == 0): order = a + order
-                    else: remind.append(x)
-                else:
-                    if (len(order) == 0):
-                        order = a+b
-                    else:    
-                        remind.append(x)
-
-        #print((order, remind))
-        if (len(remind) >= len(less)):
-            raise ValueError("ambigous")
-        if (len(remind) == 0):
-            break
-        less = remind
-        remind = []
-
-    return order        
-
+                    s.push(zz)
+    return longest                
+            
 def alienDict(data):
     less = []
     for i in range(1, len(data), 1):
