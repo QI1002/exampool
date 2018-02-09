@@ -20,40 +20,32 @@ class stack:
 def paint(cost):
     n = len(cost)
     k = len(cost[0])
-    mins = []
-    result = []
+    min1s = []
+    min2s = []
 
-    maxi = maxgap = None
+    min1 = min2 = 0
+    i1 = i2 = -1
     for i in range(n):
-        min1 = min2 = None
+        m1 = m2 = None
+        t1 = t2 = None
         for j in range(k):
-            if (min1 == None or cost[i][min1] > cost[i][j]):
-                min2 = min1
-                min1 = j
+            v = cost[i][j] + (min2 if (j == i1) else min1)
+            t = list(min2s) if (j == i1) else list(min1s)
+            if (m1 == None or m1 > v):
+                m2,i2,t2 = m1,i1,t1
+                m1,i1,t1 = v,j,t
             else: 
-                if (min2 == None or cost[i][min2] > cost[i][j]):
-                    min2 = j
+                if (m2 == None or m2 > v) : 
+                    m2,i2,t2 = v,j,t
 
-        if (maxgap == None or maxgap < (cost[i][min2] - cost[i][min1])):
-            maxgap = cost[i][min2] - cost[i][min1]
-            maxi = i
+        min1s = t1
+        min2s = t2
+        min1s.append(i1)
+        min2s.append(i2)
+        min1 = m1 
+        min2 = m2
 
-        mins.append((min1,min2))
-    
-    result.append(mins[maxi][0])
-    prev = mins[maxi][0]
-    for i in range(maxi+1,n,1):
-        min1, min2 = mins[i]
-        prev = min1 if (prev != min1) else min2 
-        result.append(prev)
-
-    prev = mins[maxi][0]
-    for i in range(maxi-1,-1,-1):
-        min1, min2 = mins[i]
-        prev = min1 if (prev != min1) else min2 
-        result.insert(0, prev)
-
-    return result  
+    return min1, min1s  
 
 
 cost = [[1,3,2,4],[4,1,2,3],[2,3,1,4],[1,4,2,3]]
