@@ -1,5 +1,5 @@
 
-#265. Paint House II 
+#256. Paint House 
 
 class stack:
     def __init__(self):
