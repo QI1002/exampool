@@ -20,26 +20,43 @@ class stack:
 def paint(cost):
     n = len(cost)
     k = len(cost[0])
-    order = []
-    
+    mins = []
+    result = []
+
+    maxi = maxgap = None
     for i in range(n):
-        t = sorted(range(k), key = lambda j: cost[i][j])
-        order.append(t)
+        min1 = min2 = None
+        for j in range(k):
+            if (min1 == None or cost[i][min1] > cost[i][j]):
+                min2 = min1
+                min1 = j
+            else: 
+                if (min2 == None or cost[i][min2] > cost[i][j]):
+                    min2 = j
 
-    print(order)
-    index = [0,0,0,0]
-    while(True):
-       result = [ order[i][index[i]] for i in range(n) ]
-       conflict = False
-       for i in range(1, n, 1):
-           if (result[i] == result[i-1]):
-               conflict = True
-               break 
-       if (conflict == False): break    
+        if (maxgap == None or maxgap < (cost[i][min2] - cost[i][min1])):
+            maxgap = cost[i][min2] - cost[i][min1]
+            maxi = i
 
-    return result           
-            
- 
+        mins.append((min1,min2))
+    
+    result.append(mins[maxi][0])
+    prev = mins[maxi][0]
+    for i in range(maxi+1,n,1):
+        min1, min2 = mins[i]
+        prev = min1 if (prev != min1) else min2 
+        result.append(prev)
+
+    prev = mins[maxi][0]
+    for i in range(maxi-1,-1,-1):
+        min1, min2 = mins[i]
+        prev = min1 if (prev != min1) else min2 
+        result.insert(0, prev)
+
+    return result  
+
 
 cost = [[1,3,2,4],[4,1,2,3],[2,3,1,4],[1,4,2,3]]
+print(paint(cost))
+cost = [[1,3,2,4],[1,101,102,103],[2,3,1,4],[1,4,2,3]]
 print(paint(cost))
