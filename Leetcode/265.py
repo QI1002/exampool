@@ -1,21 +1,5 @@
 
-#256. Paint House 
-
-class stack:
-    def __init__(self):
-        self.body = []
-
-    def push(self, data):
-        self.body.append(data)
-
-    def pop(self):
-        if (len(self.body) == 0):
-            return None
-        else:
-            return self.body.pop()
-
-    def isEmpty(self):
-        return True if len(self.body) == 0 else False
+#265. Paint House II 
 
 def paint(cost):
     n = len(cost)
