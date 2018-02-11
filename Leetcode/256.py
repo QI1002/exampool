@@ -24,7 +24,7 @@ def paint(cost):
         red = r
         green = g
         blue = b
-        print((r,g,b,rtt,gtt,btt))
+        #print((r,g,b,rtt,gtt,btt))
         rt = list(rtt)
         rt.append(0)
         gt = list(gtt)
