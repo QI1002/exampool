@@ -1,4 +1,6 @@
 
+#250. Count Univalue Subtree
+
 class stack:
     def __init__(self):
         self.body = []
@@ -42,14 +44,14 @@ def printTree(root):
     s.push(root)
     while(not s.isEmpty()):
         t = s.pop()
-        l = None 
-        if t.left != 0 : 
-            l = t.left.value
-            s.push(t.left)
         r = None 
         if t.right != 0 :
             r = t.right.value
             s.push(t.right)
+        l = None 
+        if t.left != 0 : 
+            l = t.left.value
+            s.push(t.left)
         print((t.value, l, r))
 
 def monoTree(root):
