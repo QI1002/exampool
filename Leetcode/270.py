@@ -77,12 +77,16 @@ def flipTree(root):
 def findCloset(root, f):
     s = stack()
     t = root
-    while(t != 0):
-        s.push(t)
-        t = t.left
-   
     prev_t = 0
-    while(not s.isEmpty()):
+
+    while(True):
+
+        while(t != 0):
+            s.push(t)
+            t = t.left
+
+        if (s.isEmpty()): break    
+        
         t = s.pop()
         if (float(t.value) == f): return t.value
         if (float(t.value) > f):
@@ -91,9 +95,6 @@ def findCloset(root, f):
             return t.value if (d2 == None or d2 >= d1) else prev_t.value
         prev_t = t
         t = t.right
-        while(t != 0):
-            s.push(t)
-            t = t.left
         
     return prev_t.value
 
