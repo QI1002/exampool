@@ -1,1 +1,1 @@
-g++ $1 && ./a.exe && sleep 0 && rm a.exe
+g++ $1 && ./a.exe ${@:2} && sleep 1 && rm a.exe
