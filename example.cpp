@@ -6,6 +6,50 @@
 
 using namespace std;
 
+template<typename T>
+void show(T& t, string title)
+{
+    cout << title << " contains: " << t.size() << "\n";
+    for (auto it = t.begin(); it != t.end(); it++)
+	cout << *it << " ";
+    cout << endl;
+}
+
+template<typename T>
+void showr(T& t, string title)
+{
+    cout << title << " contains: " << t.size() << "\n";
+    for (auto it = t.rbegin(); it != t.rend(); it++)
+	cout << *it << " ";
+    cout << endl;
+}
+
+template<typename T>
+void showc(T& t, string title)
+{
+    cout << title << " contains: " << t.size() << "\n";
+    for (auto it = t.cbegin(); it != t.cend(); it++)
+	cout << *it << " ";
+    cout << endl;
+}
+
+template<typename T>
+void showcr(T& t, string title)
+{
+    cout << title << " contains: " << t.size() << "\n";
+    for (auto it = t.crbegin(); it != t.crend(); it++)
+	cout << *it << " ";
+    cout << endl;
+}
+
+template<typename T>
+void newshow(T& t, string title)
+{
+    cout << title << " contains(2): " << t.size() << "\n";
+    for (auto& x: t) cout << x << " ";
+    cout << endl;
+}
+
 void demostring()
 {
 
@@ -52,45 +96,6 @@ void demostack()
     }
 }
 
-void showdq1(deque<int>& dq, string title)
-{
-    cout << title << " contains: " << dq.size() << "\n";
-    for (auto it = dq.begin(); it != dq.end(); it++)
-	cout << *it << " ";
-    cout << endl;
-}
-
-void showdq1r(deque<int>& dq, string title)
-{
-    cout << title << " contains(r): " << dq.size() << "\n";
-    for (auto it = dq.rbegin(); it != dq.rend(); it++)
-	cout << *it << " ";
-    cout << endl;
-}
-
-void showdq1c(deque<int>& dq, string title)
-{
-    cout << title << " contains(c): " << dq.size() << "\n";
-    for (auto it = dq.cbegin(); it != dq.cend(); it++)
-	cout << *it << " ";
-    cout << endl;
-}
-
-void showdq1cr(deque<int>& dq, string title)
-{
-    cout << title << " contains(cr): " << dq.size() << "\n";
-    for (auto it = dq.crbegin(); it != dq.crend(); it++)
-	cout << *it << " ";
-    cout << endl;
-}
-
-void showdq2(deque<int>& dq, string title)
-{
-    cout << title << " contains(2): " << dq.size() << "\n";
-    for (auto& x: dq) cout << x << " ";
-    cout << endl;
-}
-
 void demodeque()
 {
     deque<int> deque1 = {10, 20, 30};
@@ -102,38 +107,38 @@ void demodeque()
     deque1.emplace_back(1000);
 
     cout << deque1.front() << " " << deque1.back() << endl;
-    showdq1(deque1, "deque1");
-    showdq1r(deque1, "deque1");
+    show<deque<int>>(deque1, "deque1");
+    showr<deque<int>>(deque1, "deque1");
     
     deque2.assign(7, 11);
-    showdq1(deque2, "deque2");
+    show<deque<int>>(deque2, "deque2");
 
     deque2.assign(deque1.cbegin()+1, deque1.cend()-1);
-    showdq1(deque2, "deque2");
+    show<deque<int>>(deque2, "deque2");
 
     const int v[] = {111,222,333,444};
     deque2.assign(v, v+4);
-    showdq1(deque2, "deque2");
+    show<deque<int>>(deque2, "deque2");
     deque2.insert(deque2.end(), deque1.cbegin()+1, deque1.cend()-1);
-    showdq2(deque2, "deque2");
+    newshow<deque<int>>(deque2, "deque2");
 
     deque1.pop_back(); deque1.pop_front();
     deque1.push_back(2000); deque1.push_front(-2);
-    showdq2(deque1, "deque1");
+    newshow<deque<int>>(deque1, "deque1");
 
     cout << "max size = " << deque2.max_size() << endl;
     deque2.erase(deque2.cbegin(), deque2.cbegin()+4);
-    showdq2(deque2, "deque2");
+    newshow<deque<int>>(deque2, "deque2");
 
     deque1.swap(deque2);
-    showdq2(deque2, "deque2");
+    newshow<deque<int>>(deque2, "deque2");
 
     deque2.resize(5);
     deque2.resize(7, 99);
-    showdq1cr(deque2, "deque2");
+    showcr<deque<int>>(deque2, "deque2");
 
     deque2.clear();
-    showdq2(deque2, "deque2");
+    newshow<deque<int>>(deque2, "deque2");
     cout << "deque2 is empty: " << deque2.empty() << endl;
     deque2.shrink_to_fit();
 }
