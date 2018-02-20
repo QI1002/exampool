@@ -244,6 +244,10 @@ void demomap()
     map1.swap(map2);
     showmapc<map<int, string>>(map1, "map1");
 
+    auto ret = map1.equal_range(3);
+    cout << "lower (" << ret.first->first << "," << ret.first->second << ") " << endl;
+    cout << "upper (" << ret.second->first << "," << ret.second->second << ") " << endl;
+
     map1.clear();
     showmap<map<int, string>>(map1, "map1");
     cout << "map1 is empty: " << map1.empty() << endl;
