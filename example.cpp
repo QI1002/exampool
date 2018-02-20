@@ -7,6 +7,7 @@
 #include <deque>
 #include <set>
 #include <queue>
+#include <algorithm>
 
 using namespace std;
 
@@ -476,12 +477,64 @@ void demopriority_queue()
     display<priority_queue<string>>(priority_queue2, "priority_queue2");
 }
 
+void checkbound(vector<int>& vec, int target, auto comp)
+{
+    auto ilower = lower_bound(vec.begin(), vec.end(), target, comp);
+    auto iupper = upper_bound(vec.begin(), vec.end(), target, comp);
+    if (ilower == iupper) ilower --;
+    if ((ilower - vec.begin()) >= 0)
+        cout << "the search for " << target << " lower bound " << *ilower << endl;
+    else
+        cout << "the search for " << target << " lower bound -Nan" << endl;
+    if ((iupper - vec.end()) < 0)
+        cout << "the search for " << target << " upper bound " << *iupper << endl;
+    else
+        cout << "the search for " << target << " upper bound Nan" << endl;
+}
+
+void demoalgo()
+{
+    static int ints[] = { 3, 11, 21, 5, 7, 17, 27, 23 };
+    vector<int> vec(ints, ints+8);
+    auto mycomp1 = [](int i,int j) { return i < j; };
+    auto mycomp2 = [](int i,int j) { return i > j; };
+
+    // indirect sorting
+    vector<int> index = { 0, 1, 2, 3, 4, 5, 6, 7 };
+    auto mycompi = [](int i, int j) { return ints[i] < ints[j]; };
+    sort(index.begin(), index.end(), mycompi);
+    show<vector<int>>(index, "index");
+
+    sort(vec.begin(), vec.end(), mycomp2);
+    show<vector<int>>(vec, "vec");
+
+    sort(vec.begin(), vec.end(), mycomp1);
+    show<vector<int>>(vec, "vec");
+
+    int target = 5;
+    if (binary_search(vec.begin(), vec.end(), target))
+        cout << "the search for " << target << " successes" << endl; 
+    else
+        cout << "the search for " << target << " fails" << endl; 
+
+    sort(vec.begin(), vec.end(), mycomp1);
+    checkbound(vec, 11, mycomp1);
+    checkbound(vec, 10, mycomp1);
+    checkbound(vec, -1, mycomp1);
+    checkbound(vec, 30, mycomp1);
+    cout << "========================" << endl;
+    sort(vec.begin(), vec.end(), mycomp2);
+    checkbound(vec, 11, mycomp2);
+    checkbound(vec, 10, mycomp2);
+    checkbound(vec, -1, mycomp2);
+    checkbound(vec, 30, mycomp2);
+}
 
 int main(int argc, char* argv[])
 {
     if (argc != 2) 
     {
-        cout << "Usage: " << argv[0] << " [string|vector|map|stack|deque|set|queue|priority_queue]";
+        cout << "Usage: " << argv[0] << " [string|vector|map|stack|deque|set|queue|priority_queue|algo]";
         return 0;
     }
 
@@ -508,6 +561,9 @@ int main(int argc, char* argv[])
 
     if (string(argv[1]) == "priority_queue")
 	demopriority_queue();
+
+    if (string(argv[1]) == "algo")
+	demoalgo();
 
     return 0;
 }
