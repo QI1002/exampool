@@ -19,6 +19,7 @@ void show(T& t, string title)
     cout << endl;
 }
 
+
 template<typename T>
 void showr(T& t, string title)
 {
@@ -51,6 +52,51 @@ void newshow(T& t, string title)
 {
     cout << title << " contains(2): " << t.size() << endl;
     for (auto& x: t) cout << x << " ";
+    cout << endl;
+}
+
+template<typename T>
+void showmap(T& t, string title)
+{
+    cout << title << " contains: " << t.size() << endl;
+    for (auto it = t.begin(); it != t.end(); it++)
+	cout << "(" << it->first << "," << it->second << ") ";
+    cout << endl;
+}
+
+template<typename T>
+void showmapr(T& t, string title)
+{
+    cout << title << " contains(r): " << t.size() << endl;
+    for (auto it = t.rbegin(); it != t.rend(); it++)
+	cout << "(" << it->first << "," << it->second << ") ";
+    cout << endl;
+}
+
+template<typename T>
+void showmapc(T& t, string title)
+{
+    cout << title << " contains(c): " << t.size() << endl;
+    for (auto it = t.cbegin(); it != t.cend(); it++)
+	cout << "(" << it->first << "," << it->second << ") ";
+    cout << endl;
+}
+
+template<typename T>
+void showmapcr(T& t, string title)
+{
+    cout << title << " contains: " << t.size() << endl;
+    for (auto it = t.crbegin(); it != t.crend(); it++)
+	cout << "(" << it->first << "," << it->second << ") ";
+    cout << endl;
+}
+
+template<typename T>
+void newshowmap(T& t, string title)
+{
+    cout << title << " contains(2): " << t.size() << endl;
+    for (auto& x: t)
+	cout << "(" << x.first << "," << x.second << ") ";
     cout << endl;
 }
 
@@ -134,9 +180,74 @@ void demovector()
 
 }
 
+char* itoa10(int i)
+{
+    static char buf[5];
+    return itoa(10*i, buf, 10);
+}
+
 void demomap()
 {
+    map<int, string> map1;
+    map<int, string> map2;
+    int highkey = 3;
+    pair<int, string> highpair = pair<int, string>(4, itoa10(4));   
 
+    map<int, string>::key_compare kcomp = map1.key_comp();
+    map<int, string>::value_compare vcomp = map1.value_comp();
+    for (int i = 0; i <= 5; i++) map1.insert(pair<int, string>(i, itoa10(i)));
+
+    auto p = map1.insert(pair<int, string>(5, itoa10(5)));
+    cout << "result = " << p.second << " with " << p.first->first << "," << p.first->second << endl;
+    p = map1.emplace(pair<int, string>(6, itoa10(6)));
+    cout << "result = " << p.second << " with " << p.first->first << "," << p.first->second << endl;
+    auto itt = map1.emplace_hint(p.first, pair<int, string>(7, itoa10(7)));
+    cout << "hit emplace: " << itt->first << "," << itt->second << endl;
+    showmap<map<int, string>>(map1, "map1");
+ 
+    cout << "map1 key less than " << highkey << ": ";
+    auto it1 = map1.begin();
+    while (kcomp(it1->first, highkey))
+    {
+	cout << "(" << it1->first << "," << it1->second << ") ";
+	it1++;
+    }
+    cout << endl;
+
+    cout << "map1 value less than (" << highpair.first << "," << highpair.second << "): "; 
+    auto it2 = map1.begin();
+    while (vcomp(*it2, highpair))
+    {
+	cout << "(" << it2->first << "," << it2->second << ") ";
+	it2++;
+    }
+    cout << endl;
+
+    map1.erase(0);
+    map1.erase(map1.find(7));
+    itt = map1.find(7);
+    if (itt == map1.end())
+        cout << "find 7: not found" << endl;
+    else
+	cout << "find 7 (" << itt->first << "," << itt->second << ") " << endl;
+    cout << "count 6:" << map1.count(6) << " count 7:" << map1.count(7) << endl;
+    auto ilower = map1.lower_bound(-1);
+    auto iupper = map1.upper_bound(100);
+    cout << "lower -1 (" << ilower->first << "," << ilower->second << ") " << endl;
+    cout << "upper 100 (" << iupper->first << "," << iupper->second << ") " << endl;
+    showmapr<map<int, string>>(map1, "map1");
+
+    ilower++; iupper--; // no +1,-1 only ++ and --
+    map2.insert(ilower, iupper);
+    newshowmap<map<int, string>>(map2, "map2");
+
+    map1.swap(map2);
+    showmapc<map<int, string>>(map1, "map1");
+
+    map1.clear();
+    showmap<map<int, string>>(map1, "map1");
+    cout << "map1 is empty: " << map1.empty() << endl;
+    //map1.shrink_to_fit();
 }
 
 void demostack()
