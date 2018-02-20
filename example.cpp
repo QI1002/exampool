@@ -129,7 +129,74 @@ void display2(T& t, string title)
 
 void demostring()
 {
+    char buf[20];
+    string str = "This is a Miracle";
 
+    cout << "find " << str << " with is:" << str.find("is") << endl;
+    cout << "find " << str << " with is:" << str.rfind("is") << endl;
+    
+    size_t sz = str.copy(buf, str.length(), 0);
+    buf[sz] = 0;
+
+    cout << "partial of string: " << buf << endl;
+
+    char c = '0';
+    sz = str.find_first_of("iaeou");
+    while (sz != string::npos) 
+    {
+        str[sz] = c++;
+	sz = str.find_first_of("iaeou");
+    }
+
+    cout << "update vowel from head: " << str << endl;
+
+    str = buf;
+    c = '0';
+    sz = str.find_last_of("iaeou");
+    while (sz != string::npos) 
+    {
+        str[sz] = c++;
+	sz = str.find_last_of("iaeou");
+    }
+
+    cout << "update vowel from tail: " << str << endl;
+
+    str = buf;
+    c = '0';
+    sz = str.find_first_not_of("iaeou");
+    while (sz != string::npos) 
+    {
+        str[sz] = c++;
+	sz = str.find_first_not_of("iaeou", sz+1);
+    }
+
+    cout << "update consonant from head: " << str << endl;
+
+    str = buf;
+    c = '0';
+    sz = str.find_last_not_of("iaeou");
+    while (sz != string::npos) 
+    {
+        str[sz] = c++;
+	sz = str.substr(0, sz).find_last_not_of("iaeou");
+    }
+
+    cout << "update consonant from tail: " << str << endl;
+    string result = (str.compare(buf) > 0) ? "new > old" : "old > new";    
+    cout << "compare result: " << result << endl;
+
+    string newstr(buf);
+    str.swap(newstr);
+    str.replace(2, 10, "at is an o");
+    cout << "replaced string: " << str << endl;
+    
+    str = buf;
+    str.erase(4, 3);
+    cout << "erased string: " << str << endl;
+    str.erase(str.cbegin()+4, str.cend());
+    cout << "erased string: " << str << endl;
+
+    str.shrink_to_fit();
 }
 
 void demovector()
