@@ -3,6 +3,9 @@
 #string,list(stack, queue),dict,orderdict,heap,tree,linked list
 
 import sys
+from heapq import *
+from bisect import *
+from itertools import *
 
 def del1(x,i): del x[i]
 def del2(x,i,j): del x[i:j]
@@ -84,12 +87,75 @@ def demodict(data):
     cmd("data.copy()", lambda: data.copy())
     cmd("data.clear()", lambda: data.clear())
 
+def demoheapq(data):
+    cmd("heapify(data)", lambda: heapify(data) or data)
+    cmd("heappush(data, -1)", lambda: heappush(data,-1) or data)
+    cmd("heappop(data)", lambda: heappop(data))
+    cmd("heappushpop(data, 9)", lambda: heappushpop(data, 9))
+    cmd("heapreplace(data, 2)", lambda: heapreplace(data, 2))
+    cmd("heapify(data)", lambda: heapify(data) or data)
+
+    cmd("list(merge(data, [3,4,6,8])))", lambda: list(merge(data, [3,4,6,8])))
+    cmd("nlargest(3, data)", lambda: nlargest(3, data))
+    cmd("nsmallest(3, data)", lambda: nsmallest(3, data))
+    
+def demobisect(data):
+    cmd("bisect_left(data,1)", lambda: bisect_left(data, 1))
+    cmd("bisect_right(data,1)", lambda: bisect_right(data, 1))
+    cmd("bisect_left(data,7)", lambda: bisect_left(data, 7))
+    cmd("bisect_right(data,7)", lambda: bisect_right(data, 7))
+    cmd("bisect_left(data,0)", lambda: bisect_left(data, 0))
+    cmd("bisect_right(data,0)", lambda: bisect_right(data, 0))
+    cmd("bisect_left(data,2)", lambda: bisect_left(data, 2))
+    cmd("bisect_right(data,2)", lambda: bisect_right(data, 2))
+    cmd("bisect_left(data,4)", lambda: bisect_left(data, 4))
+    cmd("bisect_right(data,4)", lambda: bisect_right(data, 4))
+    cmd("bisect_left(data,6)", lambda: bisect_left(data, 6))
+    cmd("bisect_right(data,6)", lambda: bisect_right(data, 6))
+    cmd("bisect_left(data,8)", lambda: bisect_left(data, 8))
+    cmd("bisect_right(data,8)", lambda: bisect_right(data, 8))
+     
+    data2 = list(data) 
+    cmd("insort_left(data,8)", lambda: insort_left(data, 8) or data)
+    cmd("insort_right(data2,8)", lambda: insort_right(data2, 8) or data2)
+    cmd("insort_left(data,6)", lambda: insort_left(data, 6) or data)
+    cmd("insort_right(data2,6)", lambda: insort_right(data2, 6) or data2)
+    cmd("insort_left(data,4)", lambda: insort_left(data, 4) or data)
+    cmd("insort_right(data2,4)", lambda: insort_right(data2, 4) or data2)
+    cmd("insort_left(data,2)", lambda: insort_left(data, 2) or data)
+    cmd("insort_right(data2,2)", lambda: insort_right(data2, 2) or data2)
+    cmd("insort_left(data,0)", lambda: insort_left(data, 0) or data)
+    cmd("insort_right(data2,0)", lambda: insort_right(data2, 0) or data2)
+
+def demoitertools(data):
+    cmd("[ count(10).next() for x in range(5) ]", lambda c = count(10): [ c.next() for i in range(5) ])
+    cmd("[ cycle('ABC').next() for x in range(5) ]", lambda c = cycle('ABC'): [ c.next() for i in range(5) ])
+    cmd("[ repeat('AB').next() for x in range(5) ]", lambda c = repeat('AB'): [ c.next() for i in range(5) ])
+
+    cmd("list(chain('ABC', 'DEF'))", lambda: list(chain('ABC', 'DEF')))
+    cmd("list(compress('ABC', [0,1,1]))", lambda: list(compress('ABC', [0,1,1])))
+    cmd("list(dropwhile( lambda x: x < 5, [2,4,7,4,2,7]))", lambda: list(dropwhile( lambda x: x < 5, [2,4,7,4,2,7])))
+    cmd("list(takewhile( lambda x: x < 5, [2,4,7,4,2,7]))", lambda: list(takewhile( lambda x: x < 5, [2,4,7,4,2,7])))
+    cmd("[ k, list(g) for k,g in groupby('AAABBA') ]", lambda: [ (k,list(g)) for k,g in groupby('AAABBA')])
+    cmd("list(ifilter(lambda x: x%3, range(10)))", lambda: list(ifilter(lambda x: x%3, range(10))))
+    cmd("list(ifilterfalse(lambda x: x%3, range(10)))", lambda: list(ifilterfalse(lambda x: x%3, range(10))))
+    cmd("list(imap(lambda a,b: a*b, ['D', 2 , [1]], [3, 4, 2]))", lambda: list(imap(lambda a,b: a*b, ['D', 2, [1]], [3, 4, 2])))
+    cmd("list(starmap(lambda a,b: a*b, [('D',3), (2,4) , ([1],2)]))", lambda: list(starmap(lambda a,b: a*b,[('D',3), (2,4) , ([1],2)])))
+    cmd("list(izip('ABCD', 'xy'))", lambda: list(izip('ABCD', 'xy')))
+
+    cmd("list(product('ABCD', 'xy'))", lambda: list(product('ABCD', 'xy')))
+    cmd("list(permutations(range(4), 2))", lambda: list(permutations(range(4), 2)))
+    cmd("list(combinations(range(4), 2))", lambda: list(combinations(range(4), 2)))
+    cmd("list(combinations_with_replacement(range(4), 2))", lambda: list(combinations_with_replacement(range(4), 2)))
+
+    cmd("[ cycle('AB').next() for x in range(5) ]", lambda c = cycle('AB'): not c.next() or [ c.next() for i in range(5) ])
+
 def main():
     argv = sys.argv
-    print(sys.argv)
+    #print(sys.argv)
 
     if (len(argv) != 2):
-        print("Usage: {0} [string|stringhelp|list|listhelp|dict|dicthelp]".format(argv[0]))
+        print("Usage: {0} [string|stringhelp|list|listhelp|dict|dicthelp|heapq|heapqhelp|bisect|bisecthelp|itertools|itertoolshelp]]".format(argv[0]))
         sys.exit(0)
 
     if (argv[1] == "str"): demostr("This is a Miracle")
@@ -100,6 +166,15 @@ def main():
 
     if (argv[1] == "dict"): demodict({x:y for x,y in enumerate("abcdefg")})
     if (argv[1] == "dicthelp"): help(dict)
+
+    if (argv[1] == "heapq"): demoheapq([5,1,7,3])
+    if (argv[1] == "heapqhelp"): help(heapq)
+
+    if (argv[1] == "bisect"): demobisect([1,3,5,7])
+    if (argv[1] == "bisecthelp"): help(bisect)
+
+    if (argv[1] == "itertools"): demoitertools({x:y for x,y in enumerate("abcdefg")})
+    if (argv[1] == "itertoolshelp"): help(itertools)
 
 if __name__== "__main__":
    main()
