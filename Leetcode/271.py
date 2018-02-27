@@ -9,17 +9,18 @@ def encode(s):
     for c in s:
         if (c == word):
             count += 1
-            if (count > 255): count,output = 255, True
+            if (count < 256): continue
+            count,output = 255, True
         else:
             if (word != None): output = True
-            else: count, word = 1, c
 
         if (output):
             result += chr(count)
             result += word
             output = False
-            count = 1
-            word = c
+        
+        count = 1
+        word = c
 
     if (word != None):
         result += chr(count)
@@ -40,3 +41,7 @@ def decode(s):
 data = 'abaabbc'
 edata = encode(data)
 print("{0}:{1}".format(data, decode(edata)))
+data = 'abaaaaaabbc'
+edata = encode(data)
+print("{0}:{1}".format(data, decode(edata)))
+
