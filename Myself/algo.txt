@@ -1,0 +1,46 @@
+
+[Elements Chapter 1-7]
+- linked list
+- stack
+- queue
+- tree
+  > terminal node (leaf node) as external node
+  > non-terminal node as internal node
+  > full binary tree or balanced binary tree (the depth of leaf nodes are x or x+1)
+  > complete binary tree (the depth of leaf nodes are x)
+  > traversal order: preorder:(p,l,r), inorder:(l,p,r), postorder:(l,r,p) (inorder name from math expr, ex: 2+3)
+                    and level-order traversal 
+    - easy to implement preorder by stack and level-order by queue  
+  > recursive => remove it 
+                 1. one call one : change to use loop replace it
+                 2. one call X (X>1): easy to change to use one call X-1 with loop
+                 3. use one stack (ex: tree preorder traversal)
+                 4. use two stack (ex: tree postorder traversal)
+
+TODO: 
+[1]. check the tree traverse implementation of inorder and postorder
+
+[Sort algorithms Chapter 8-13]
+
+		   BestO AvgO  WorseO Memory Stable Compare Swap    Note  	                 
+Selection Sort     N^2	 N^2   N^2    1      No     N^2/2   N       better for large data but small key 
+Insertion Sort     N	 N^2   N^2    1      Yes    N^2/4   N^2/8   linear for a sorted data but more assignment
+Bubble Sort        N     N^2   N^2    1      Yes    N^2/2   N^2/2   linear for a sorted data but more swaps
+
+Quick Sort         NlogN NlogN N^2    logN   No     2NlogN  N/3logN 
+Heap Sort                NlogN NlogN  1      No     2NlogN
+Merge Sort         NlogN NlogN NlogN  N      Yes    NlogN
+
+Shell Sort         NlogN -     -      -      No     N^(3/2)         use insertion sort hierarchically (steps = /3)
+MSB Radix Sort     -     n*k/d n*k/d  n+s^d  Yes                    recursive (k = key bits, d = division bits) 
+LSB Radix Sort     -     n*k/d n*k/d  n+s^d  Yes                    no recursive and reply on stable character
+External Sort                                                       multiple way merge sort
+
+TODO: 
+1. why selection is not stable, why stable need O(n) extra space ?
+   the swap make instable and we can use insert to replace swap and then stable
+{2}. review the quicksort and heapsort algorithm 
+
+
+
+   

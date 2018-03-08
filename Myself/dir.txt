@@ -1,0 +1,27 @@
+
+[Directions]
+0. algorithms 
+1. C, C++
+2. JAVA, SQL
+3. openGL
+4. Linux kernel (spinlock, module, device ...)
+5. android (fenace, binder, camera, codec ...)
+6. Risc bootup
+7. Web 
+8. DNN and openCL
+
+[Books] 
+0. Algorithms by C/C++
+1. Cracking the Coding Interview and it's link 
+2. element of programming interview
+3. linux device drivers
+4. Android introduction(new one for android O?)
+5. UML ?
+6, Tensorflow/Caffe books ?
+7. ISO26262 
+
+
+[Tests]
+1. google : line intersection & 2048
+2. ?A?B
+3. python set and C/C++ practice ...
