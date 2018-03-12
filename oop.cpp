@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string.h>
 #include <malloc.h>
+#include <atomic>
 
 using namespace std;
 
@@ -15,8 +16,7 @@ class SmartPtr
 public:	
     SmartPtr(T* ptr)
     {
-	ref_count = (unsigned int*)malloc(sizeof(unsigned int));
-	*ref_count = 1;
+	ref_count = new atomic<unsigned int>(1);
         this->ptr = ptr;
     }
 
@@ -39,12 +39,22 @@ public:
 	return *this;
     }
 
+    T& operator* ()
+    {
+        return *ptr;
+    }
+
+    T* operator-> ()
+    {
+        return ptr;
+    }
+
     ~SmartPtr()
     {
 	*ref_count--;
 	if (*ref_count == 0)
         {
-            free(ref_count);
+            delete ref_count;
 	    delete ptr;
 	    ptr = NULL;
 	    ref_count = NULL;
@@ -53,7 +63,7 @@ public:
 
 protected:
     T* ptr;
-    unsigned int* ref_count;
+    atomic<unsigned int>* ref_count;
 };
 
 class Employee
@@ -137,6 +147,9 @@ int main(int argc, char* argv[])
     SmartPtr<Employee> ee(e1p);
     SmartPtr<Employee> ee2(ee);
     SmartPtr<Employee> ee3 = ee2;
+
+    cout << "ee2: " << (*ee2).getName() << " : " << (*ee2).getRank() << endl;
+    cout << "ee3: " << ee3->getName() << " : " << ee3->getRank() << endl;
 
     return 0;
 }
