@@ -2,11 +2,59 @@
 
 #include <iostream>
 #include <string.h>
+#include <malloc.h>
 
 using namespace std;
 
 #define VIRTUAL_FUNC
 #define VIRTUAL_DEMO
+
+template <class T>
+class SmartPtr
+{
+public:	
+    SmartPtr(T* ptr)
+    {
+	ref_count = (unsigned int*)malloc(sizeof(unsigned int));
+	*ref_count = 1;
+        this->ptr = ptr;
+    }
+
+    SmartPtr(SmartPtr<T>& src)
+    {
+        ref_count = src.ref_count;
+	ptr = src.ptr;
+	*ref_count++;
+    }
+
+    SmartPtr<T>& operator= (SmartPtr<T>& src)
+    {
+        if (&src != this)
+	{
+            ref_count = src.ref_count;
+	    ptr = src.ptr;
+	    *ref_count++;
+	}
+	
+	return *this;
+    }
+
+    ~SmartPtr()
+    {
+	*ref_count--;
+	if (*ref_count == 0)
+        {
+            free(ref_count);
+	    delete ptr;
+	    ptr = NULL;
+	    ref_count = NULL;
+	}
+    }
+
+protected:
+    T* ptr;
+    unsigned int* ref_count;
+};
 
 class Employee
 {
@@ -83,8 +131,12 @@ int main(int argc, char* argv[])
     Fresher e1("One");
     cout << "e1: " << e1.getName() << " : " << e1.getRank() << endl;
 
-    Employee* e1p = &e1;
+    Employee* e1p = new Fresher("Two");
     cout << "e1p: " << e1p->getName() << " : " << e1p->getRank() << endl;
+
+    SmartPtr<Employee> ee(e1p);
+    SmartPtr<Employee> ee2(ee);
+    SmartPtr<Employee> ee3 = ee2;
 
     return 0;
 }
