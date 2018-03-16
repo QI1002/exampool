@@ -10,38 +10,42 @@
 using namespace std;
 typedef vector<int> vint;
 #define ELEMOF(x) (sizeof(x)/sizeof(x[0]))
+#define MANS 5
+#define WOMANS 5 
 
-void printPairs(int* pairs, int n)
+void printPairs(int* pairs, int n, bool r = false)
 {
     for(int i=1; i< n; i++)
-        cout << "bride " << i << " with groom " << pairs[i] << endl;
-
+        if (r)    
+	    cout << "groom " << i << " with bride " << pairs[i] << endl;
+        else 
+	    cout << "bride " << i << " with groom " << pairs[i] << endl;
 }
 
-int main(int argc, char* argv[])
+int* findMatch(int man[][WOMANS], int woman[][MANS], int ms, int ws)
 {
-    vector<vint> manPrefer, wRank;
+    vector<vint> manPrefer, womanRank;
     deque<int> dc;
-    int man[][5] = {{2,5,1,3,4},{1,2,3,4,5},{2,3,5,4,1},{1,3,2,4,5},{5,3,2,1,4}};
-    int woman[][5] = {{5,1,4,2,3},{4,5,2,1,3},{1,4,2,3,5},{3,2,4,1,5},{4,2,3,5,1}};
-    int groom[1+ELEMOF(woman)] = { 0 };
-    int next[1+ELEMOF(man)] = { 0 };
+    int* groom = new int[1+ws];
+    int* next = new int[1+ms];
 
-    for (int i=0; i <= ELEMOF(man); i++)
+    for (int i=0; i <= ms; i++)
     {
         vint v;
-	if (i != 0) v.assign(man[i-1],man[i-1]+5);
+	for (int j=0; j < ws; j++) v.emplace(v.end(), 0);
+	if (i != 0) for (int j=0; j < ws; j++) v[j] = man[i-1][j];
 	if (i != 0) dc.push_back(i);
 	manPrefer.emplace(manPrefer.end(), v);
+	next[i] = 0;
     }
 
-    for (int i=0; i <= ELEMOF(woman); i++)
+    for (int i=0; i <= ws; i++)
     {
-        int d[6] = {0};
 	vint v;
-	v.assign(d, d+6);
-	if (i != 0) for (int j=0; j < 5; j++) v[woman[i-1][j]] = j;
-	wRank.emplace(wRank.end(), v);	
+	for (int j=0; j <= ms; j++) v.emplace(v.end(), 0);
+	if (i != 0) for (int j=0; j < ms; j++) v[woman[i-1][j]] = j;
+	womanRank.emplace(womanRank.end(), v);
+	groom[i] = 0;
     }
    
     while(dc.size() > 0)
@@ -49,7 +53,7 @@ int main(int argc, char* argv[])
         int k = dc.front(); dc.pop_front();
 	if (next[k] >= manPrefer[k].size()) break;
         int q = manPrefer[k][next[k]]; next[k]++;
-        if (groom[q] == 0 or wRank[q][groom[q]] > wRank[q][k])
+        if (groom[q] == 0 or womanRank[q][groom[q]] > womanRank[q][k])
 	{
 	    if (groom[q] != 0) dc.push_front(groom[q]);
 	    cout << k << ","<< q << endl;
@@ -60,9 +64,75 @@ int main(int argc, char* argv[])
 	}
     }
 
-    cout << "result is" << endl;
-    printPairs(groom, 1+ELEMOF(woman));
-    return 0;
+    delete[] next;
+    return groom;
 }
-  
+
+bool isStable(int man[][WOMANS], int woman[][MANS], int ms, int ws, int* groom)
+{
+    int ps = (ms > ws) ? ms+1 : ws+1;
+    vector<vint> manRank, womanRank;
+
+    for (int i=0; i <= ms; i++)
+    {
+	vint v;
+	for (int j=0; j <= ws; j++) v.emplace(v.end(), 0);
+	if (i != 0) for (int j=0; j < ws; j++) v[man[i-1][j]] = j;
+	manRank.emplace(manRank.end(), v);
+    }
+
+    for (int i=0; i <= ws; i++)
+    {
+	vint v;
+	for (int j=0; j <= ms; j++) v.emplace(v.end(), 0);
+	if (i != 0) for (int j=0; j < ms; j++) v[woman[i-1][j]] = j;
+	womanRank.emplace(womanRank.end(), v);
+    }
+    
+    for(int i = 1; i < ps; i++)
+        for (int j =i+1; j < ps; j++)
+	{
+            int w1 = i;
+	    int w2 = j;
+	    int m1 = groom[i];
+	    int m2 = groom[j];
+
+	    if (manRank[m1][w2] < manRank[m1][w1] && 
+	        womanRank[w2][m1] < womanRank[w2][m2])
+	    {
+		cout << "m1 " << m1 << "," << w1 << "," << m2 << "," << w2 << endl;    
+	        return false;
+	    }
+	    if (manRank[m2][w1] < manRank[m2][w2] && 
+	        womanRank[w1][m2] < womanRank[w1][m1])
+	    {
+		cout << "m2 " << m1 << "," << w1 << "," << m2 << "," << w2 << endl;    
+	        return false;
+	    }
+	}
+ 
+    return true;
+}
+
+int main(int argc, char* argv[])
+{
+    int man[][MANS] = {{2,5,1,3,4},{1,2,3,4,5},{2,3,5,4,1},{1,3,2,4,5},{5,3,2,1,4}};
+    int woman[][WOMANS] = {{5,1,4,2,3},{4,5,2,1,3},{1,4,2,3,5},{3,2,4,1,5},{4,2,3,5,1}};
+    int* groom;
+    bool check;
+    
+    groom = findMatch(man, woman, MANS, WOMANS);
+    check = isStable(man, woman, MANS, WOMANS, groom);
+    cout << "result is with check = " << check << endl;
+    printPairs(groom, 1+WOMANS);
+    delete[] groom;
+
+    groom = findMatch(woman, man, WOMANS, MANS);
+    check = isStable(woman, man, WOMANS, MANS, groom);
+    cout << "result is with check = " << check << endl;
+    printPairs(groom, 1+MANS, true);
+    delete[] groom;
+        
+    return 0;
+}	
 
