@@ -15,11 +15,10 @@ typedef struct weight_edge {
 #define ELEMOF(x) (sizeof(x)/sizeof(x[0]))
 using namespace std;
 
-int searchPath(vector<vector<we>> &wes, vector<we*> &find, int start, int end)
+void searchPath(vector<vector<we>> &wes, vector<we*> &find, int start, int end)
 {
     deque<vector<we*>> dd;
     vector<we*> v; 
-    cout << "start" << find.size() << endl;
     for (int i = 0; i< wes[start].size(); i++)
     {
 	we* pwe = &wes[start][i];
@@ -48,12 +47,7 @@ int searchPath(vector<vector<we>> &wes, vector<we*> &find, int start, int end)
 		    break;
 		}
 		else
-		{
-		    we* pwe = vv[vv.size()-1];
-		    if (pwe->s == 3 && pwe->e == 5)
-			cout << wes[vs][i].c << wes[vs][i].f << endl;    
 		    dd.push_front(vv);
-		}
 	    }
     }
 
@@ -68,8 +62,6 @@ int searchPath(vector<vector<we>> &wes, vector<we*> &find, int start, int end)
 
     for (int i = 0; i <find.size(); i++)
         find[i]->f += min;
-
-    return min;
 }
 
 int main(int argc, char* argv[])
@@ -93,8 +85,8 @@ int main(int argc, char* argv[])
     while(true)
     {
         find.clear();
-        int min = searchPath(wes, find, start, end);
-	if (min == 0) break;
+        searchPath(wes, find, start, end);
+	if (find.size() == 0) break;
     }
 
     int ssum = 0;
