@@ -24,30 +24,29 @@ void printPairs(int* pairs, int n, bool r = false)
 
 int* findMatch(int man[][WOMANS], int woman[][MANS], int ms, int ws)
 {
-    vector<vint> manPrefer, womanRank;
+    vector<vint> manPrefer(1+ms); // i1: 1~ms, i2: 0~ws-1
+    vector<vint> womanRank(1+ws); // i2: 1~ws, i2: 1~ms
     deque<int> dc;
     int* groom = new int[1+ws];
     int* next = new int[1+ms];
 
-    for (int i=0; i <= ms; i++)
+    for (int i=1; i <= ms; i++)
     {
-        vint v;
-	for (int j=0; j < ws; j++) v.emplace(v.end(), 0);
-	if (i != 0) for (int j=0; j < ws; j++) v[j] = man[i-1][j];
-	if (i != 0) dc.push_back(i);
-	manPrefer.emplace(manPrefer.end(), v);
+        vint &v = manPrefer[i];
+	v.resize(ws);
+	for (int j=0; j < ws; j++) v[j] = man[i-1][j];
+	dc.push_back(i);
 	next[i] = 0;
     }
 
-    for (int i=0; i <= ws; i++)
+    for (int i=1; i <= ws; i++)
     {
-	vint v;
-	for (int j=0; j <= ms; j++) v.emplace(v.end(), 0);
-	if (i != 0) for (int j=0; j < ms; j++) v[woman[i-1][j]] = j;
-	womanRank.emplace(womanRank.end(), v);
-	groom[i] = 0;
+	vint &v = womanRank[i];
+        v.resize(1+ms);	
+        for (int j=0; j < ms; j++) v[woman[i-1][j]] = j;
+        groom[i] = 0;
     }
-   
+  
     while(dc.size() > 0)
     {
         int k = dc.front(); dc.pop_front();
@@ -71,22 +70,21 @@ int* findMatch(int man[][WOMANS], int woman[][MANS], int ms, int ws)
 bool isStable(int man[][WOMANS], int woman[][MANS], int ms, int ws, int* groom)
 {
     int ps = (ms > ws) ? ms+1 : ws+1;
-    vector<vint> manRank, womanRank;
+    vector<vint> manRank(1+ms);
+    vector<vint> womanRank(1+ws);
 
-    for (int i=0; i <= ms; i++)
+    for (int i=1; i <= ms; i++)
     {
-	vint v;
-	for (int j=0; j <= ws; j++) v.emplace(v.end(), 0);
-	if (i != 0) for (int j=0; j < ws; j++) v[man[i-1][j]] = j;
-	manRank.emplace(manRank.end(), v);
+	vint &v = manRank[i];
+	v.resize(1+ws);
+	for (int j=0; j < ws; j++) v[man[i-1][j]] = j;
     }
 
-    for (int i=0; i <= ws; i++)
+    for (int i=1; i <= ws; i++)
     {
-	vint v;
-	for (int j=0; j <= ms; j++) v.emplace(v.end(), 0);
-	if (i != 0) for (int j=0; j < ms; j++) v[woman[i-1][j]] = j;
-	womanRank.emplace(womanRank.end(), v);
+	vint &v = womanRank[i];
+	v.resize(1+ms);
+	for (int j=0; j < ms; j++) v[woman[i-1][j]] = j;
     }
     
     for(int i = 1; i < ps; i++)
