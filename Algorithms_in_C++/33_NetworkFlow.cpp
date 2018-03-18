@@ -64,15 +64,12 @@ void searchPath(vector<vector<we>> &wes, vector<we*> &find, int start, int end)
         find[i]->f += min;
 }
 
-int main(int argc, char* argv[])
+void findMaxFlow(int (*sample)[3], int num, int start, int end)
 {
-    int start = 1;
-    int end = 6;
-    int sample[][3] = {{1,2,6},{1,3,8},{2,4,6},{3,5,3},{4,6,8},{5,6,6},{2,5,3},{3,4,3}};
     vector<vector<we>> wes(end+1);
     vector<we*> find; 
 
-    for(int i = 0; i < ELEMOF(sample); i++)
+    for(int i = 0; i < num; i++)
     {
         we w;
 	w.s = sample[i][0];
@@ -99,6 +96,24 @@ int main(int argc, char* argv[])
                 esum += wes[i][j].f;
 
     cout << ssum << "," << esum << endl;
+}
+
+int main(int argc, char* argv[])
+{
+    int start1 = 1;
+    int end1 = 6;
+    int sample1[][3] = {{1,2,6},{1,3,8},{2,4,6},{3,5,3},{4,6,8},{5,6,6},{2,5,3},{3,4,3}};
     
+    findMaxFlow(sample1, ELEMOF(sample1), start1, end1);
+    
+    int start2 = 0;
+    int end2 = 13;
+    int sample2[][3] = {{0,1,1},{0,2,1},{0,3,1},{0,4,1},{0,5,1},{0,6,1},
+	                {1,7,1},{1,8,1},{1,9,1},{2,7,1},{2,8,1},{2,12,1},
+	                {3,9,1},{3,10,1},{3,11,1},{4,7,1},{4,8,1},
+                        {5,10,1},{5,11,1},{5,12,1},{6,9,1},{6,11,1},{6,12,1},
+                        {7,13,1},{8,13,1},{9,13,1},{10,13,1},{11,13,1},{12,13,1}};
+    
+    findMaxFlow(sample2, ELEMOF(sample2), start2, end2);
     return 0;
 }
