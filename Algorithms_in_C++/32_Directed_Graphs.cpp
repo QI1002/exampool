@@ -181,25 +181,22 @@ bool check_topological_sort(const char* sample[], int num, vector<int> result)
     return true;
 }
 
-void merge(vector<int>& result, const vector<deque<int>> &orders)
+bool merge(vector<int>& result, const vector<deque<int>> &orders)
 {
+    bool r = true;
+
     if (orders.size() < 2)
     {	    
         if (orders.size() == 0)	    
             result.assign(orders[0].begin(), orders[0].end());
-        return;
+        return r;
     }
 
-    vector<vector<int>> pos(result.size());
     vector<int> count(result.size(), 0);
-    for(int i=0; i < pos.size(); i++)
-	pos[i].resize(orders.size(), -1);
-
     for(int i=0; i < orders.size(); i++)    	
 	for(int j=0; j < orders[i].size(); j++)
 	{
 	    int c = orders[i][j];	
-	    pos[c][i] = j;
             count[c] ++;        
         }
 
@@ -214,24 +211,29 @@ void merge(vector<int>& result, const vector<deque<int>> &orders)
     unsigned int full = (1 <<orders.size())-1;
     while(record < result.size())
     {
-        int i = index[next];
+        int min = -1;
+	int i = index[next];
 	if (i < orders[next].size()) 
 	{
 	    int c = orders[next][i];
-            if (count[c] < 2) { result[record++] = c; index[next]++; }
-	    else acc |= (1<<next);
+            if (count[c] < 2) 
+	    { result[record++] = c; index[next]++; }
+	    else 
+	    { acc |= (1<<next); if (min == -1 || index[min] >index[next]) min = next; }
 	}
 
 
 	if (acc == full)
 	{
-            int min = 0;
-	    for(int j = 1; j < orders.size(); j++)
-  	        if (index[min] > index[j]) min = j;
 	    int c = orders[min][index[min]];
 	    result[record++] = c;
+	    int k = 0;
             for(int j = 0; j < orders.size(); j++)
-		if (orders[j][index[j]] == c) index[j]++;
+	    {
+		if (orders[j][index[j]] == c) { index[j]++; k++; }
+	    }
+
+            if (k != count[c]) r = false;
 	    acc = 0;
 	}
 #if 0
@@ -250,6 +252,8 @@ void merge(vector<int>& result, const vector<deque<int>> &orders)
     for(int i = 0; i < result.size(); i++) 
 	cout << (char)(result[i]+'A');
     cout << endl;
+
+    return r;
 }
 
 void topological_sort()
@@ -290,14 +294,10 @@ void topological_sort()
     }
 
     vector<int> result(num);
-    merge(result, orders); 
-
-    //string test = "JLMKAGHIFEDCB";
-    //for(int i = 0; i < result.size(); i++) 
-    //	result[i] = test[i] - 'A';
+    bool r = merge(result, orders); 
 
     bool check = check_topological_sort(sample, ELEMOF(sample), result);
-    cout << "check result = " << check << endl;
+    cout << "check result = " << check << " and " << r << endl;
 }
 
 int main(int argc, char* argv[])
