@@ -74,7 +74,7 @@ void strongConnected(vector<set<int>> &reach, int n)
         cout << (char)('A'+i) << "=" << group[i] << endl;   
 }
 
-void extendMatrix(vector<vector<int>> &edges, const char* sample[], int num, int n, const int* weight = NULL)
+void extendMatrix(vector<vector<int>> &edges, const char* sample[], int num, int n, const int* weight = NULL,bool one = true)
 {
     for (int i = 0; i < n; i++) edges[i].resize(n);
     //if (weight == NULL) for (int i = 0; i < n; i++) edges[i][i] = 1;
@@ -84,6 +84,8 @@ void extendMatrix(vector<vector<int>> &edges, const char* sample[], int num, int
 	int e = sample[i][1] - 'A';
 
         edges[s][e] = (weight == NULL) ? 1 : weight[i];
+	if (one == false)
+            edges[e][s] = (weight == NULL) ? 1 : weight[i];
     }
 
     for (int i = 0; i < n; i++)
@@ -94,9 +96,9 @@ void extendMatrix(vector<vector<int>> &edges, const char* sample[], int num, int
     }
 }
 
-void findClosureAll(vector<vector<int>> &edges, const char* sample[], int num, int n)
+void findClosureAll(vector<vector<int>> &edges, const char* sample[], int num, int n, bool one = true)
 {
-    extendMatrix(edges, sample, num, n);
+    extendMatrix(edges, sample, num, n, NULL, one);
 
     for(int y = 0; y < n; y++)
 	for (int x = 0; x < n; x++)
@@ -113,9 +115,9 @@ void findClosureAll(vector<vector<int>> &edges, const char* sample[], int num, i
     }
 }
 
-void findShortest(vector<vector<int>> &edges, const char* sample[], const int* weight, int num, int n)
+void findShortest(vector<vector<int>> &edges, const char* sample[], const int* weight, int num, int n, bool one = true)
 {
-    extendMatrix(edges, sample, num, n, weight);
+    extendMatrix(edges, sample, num, n, weight, one);
 
     for(int y = 0; y < n; y++)
 	for (int x = 0; x < n; x++)
@@ -262,13 +264,13 @@ void topological_sort()
 	                    "HI","FE","AF","GE","GC","GH","JG","LG"};
     char start = 'A';
     char end = 'M';
-    int num = end-start+1;
-    vector<set<int>> fcs(num);
+    int n = end-start+1;
+    vector<set<int>> fcs(n);
     for (char t = start; t <= end; t++)
-        findClosure(sample, ELEMOF(sample), num, t-start, &fcs[t-start]);
+        findClosure(sample, ELEMOF(sample), n, t-start, &fcs[t-start]);
    
-    vector<bool> in(num, false);
-    vector<bool> out(num, false);
+    vector<bool> in(n, false);
+    vector<bool> out(n, false);
     vector<int> starts;
     for(int i = 0; i < ELEMOF(sample); i++)
     {
@@ -277,7 +279,7 @@ void topological_sort()
         out[s] = in[e] = true;          
     }
 
-    for(int i = 0; i < num; i++)
+    for(int i = 0; i < n; i++)
     {
 	if (out[i] == true and in[i] == false)
 	    starts.emplace_back(i);	
@@ -286,14 +288,14 @@ void topological_sort()
     vector<deque<int>> orders(starts.size());
     for(int i = 0; i < starts.size(); i++)
     {
-        vector<bool> seen(num, false);
+        vector<bool> seen(n, false);
         visit(fcs, seen, orders[i], starts[i]); 
 	for(int j = 0; j < orders[i].size(); j++)
 	    cout << (char)('A'+orders[i][j]);	
 	cout << endl;
     }
 
-    vector<int> result(num);
+    vector<int> result(n);
     bool r = merge(result, orders); 
 
     bool check = check_topological_sort(sample, ELEMOF(sample), result);
@@ -302,27 +304,34 @@ void topological_sort()
 
 int main(int argc, char* argv[])
 {
-#if 1 
-    topological_sort();
-#else	
     const char* sample[] = {"AG","AB","CA","LM","JM","JL","JK","ED","DF",
 	                    "HI","FE","AF","GE","GC","HG","GJ","LG","IH","ML"};
     const int weight[] = {4,1,1,1,2,3,1,2,1, 1,2,2,1,1,3,1,5,1,1};
   
     char start = 'A';
     char end = 'M';
-    int num = end-start+1;
-    vector<set<int>> fcs(num);
+    int n = end-start+1;
+
+    vector<set<int>> fcs(n);
     for (char t = start; t <= end; t++)
-        findClosure(sample, ELEMOF(sample), num, t-start, &fcs[t-start]);
-    strongConnected(fcs, num);  
+        findClosure(sample, ELEMOF(sample), n, t-start, &fcs[t-start]);
+    strongConnected(fcs, n);  
     
-    vector<vector<int>> edges(num);
-    findClosureAll(edges, sample, ELEMOF(sample), num);
-    for (int i = 0; i< num; i++) edges[i].clear();
-    findShortest(edges, sample, weight, ELEMOF(sample), num);
-    strongConnected2(edges, num);
-#endif
+    vector<vector<int>> edges(n);
+    findClosureAll(edges, sample, ELEMOF(sample), n);
+    for (int i = 0; i< n; i++) edges[i].clear();
+    findShortest(edges, sample, weight, ELEMOF(sample), n);
+    strongConnected2(edges, n);
+
+    topological_sort();
+
+    const char* sample1[] = {"AG","AB","BC","AF","BD","BE","CE","DE","FD","FE","GE",
+	                    "FL","EL","GL","GJ","GH","HI","IK","KJ","JL","JM","LM"};
+    const int weight1[] = {6,1,1,2,2,4,4,2,1,2,1, 2,4,5,1,3,2,1,1,3,2,1};
+    
+    vector<vector<int>> edges2(n);
+    findShortest(edges2, sample1, weight1, ELEMOF(sample1), n, false);
+    
     return 0;
 }
 
