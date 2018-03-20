@@ -41,6 +41,58 @@ public:
     }
 };
 
+bool isCycle(vector<we*> &now, we* pe, vector<int> &dad, bool update = false)
+{
+    int s = pe->s;
+    int e = pe->e;
+
+    while(dad[s] != -1) s = dad[s];
+    while(dad[e] != -1) e = dad[e];
+    if (update && s < e) dad[e] = s;
+    if (update && e < s) dad[s] = e;
+
+    return (s == e);
+}
+
+// Kurskal's algorithm
+bool findMinTree2(const char* sample[], const int weight[], const int num, int n, vector<bool> &tree)
+{
+    priority_queue<we*, vector<we*>, wecomp> pq;
+    map<int, we> wemap;
+    vector<bool> seen(n, false);
+    int next = 0;
+    seen[next] = true;
+
+    vector<we> wea(num);
+    for(int i = 0; i < num ; i++)
+    {
+        we &w = wea[i];
+	w.s = sample[i][0]-'A';
+	w.e = sample[i][1]-'A';
+	w.w = weight[i];
+        w.i = i;
+	
+	pq.push(&w);
+    }
+
+    vector<we*> now;
+    vector<int> dad(n, -1);
+    while(pq.size() > 0)
+    {
+        we* pe = pq.top(); pq.pop();
+	bool r = isCycle(now, pe, dad, true);
+	if (r == false) 
+	{
+	    now.emplace_back(pe);
+            tree[pe->i] = true;
+	}
+	//cout << r << ":";
+	//cout << pe->s << "," << pe->e << "," << pe->w << "," << pe->i << endl;
+    }
+
+    return true;
+}
+
 bool findMinTree(const char* sample[], const int weight[], const int num, int n, vector<bool> &tree)
 {
     vector<vector<we>> wes(n);	
@@ -173,7 +225,6 @@ bool findShortestPath(const char* sample[], const int weight[], const int num, i
     return true;
 }
 
-
 int main(int argc, char* argv[])
 {
     const char* sample[] = {"AG","AB","BC","AF","BD","BE","CE","DE","FD","FE","GE",
@@ -183,27 +234,39 @@ int main(int argc, char* argv[])
     char start = 'A';
     char end = 'M';
     int n = end-start+1;
-   
-    vector<bool> tree(ELEMOF(sample), false);
-    int sum = 0;
-    bool r1 = findMinTree(sample, weight, ELEMOF(sample), n, tree);
-    for(int i = 0; i < tree.size(); i++)
+ 
+    vector<bool> tree1(ELEMOF(sample), false);
+    int sum1 = 0;
+    bool r1 = findMinTree(sample, weight, ELEMOF(sample), n, tree1);
+    for(int i = 0; i < tree1.size(); i++)
     { 
-	if (tree[i] == false) continue;
+	if (tree1[i] == false) continue;
 	cout << sample[i] << ',';
-	sum += weight[i];
+	sum1 += weight[i];
     }
     cout << endl;   
-    cout << "result is " << r1 << "," << sum << endl;
+    cout << "result is " << r1 << "," << sum1 << endl;
+    
+    vector<bool> tree2(ELEMOF(sample), false);
+    int sum2 = 0;
+    bool r2 = findMinTree2(sample, weight, ELEMOF(sample), n, tree2);
+    for(int i = 0; i < tree2.size(); i++)
+    { 
+	if (tree2[i] == false) continue;
+	cout << sample[i] << ',';
+	sum2 += weight[i];
+    }
+    cout << endl;   
+    cout << "result is " << r2 << "," << sum2 << endl;
     
     vector<wp> path(n);
-    bool r2 = findShortestPath(sample, weight, ELEMOF(sample), n, start, path);
+    bool r3 = findShortestPath(sample, weight, ELEMOF(sample), n, start, path);
     for(int i = 0; i < path.size(); i++)
     { 
 	cout << i << ":" << path[i].w << ',';
     }
     cout << endl;   
-    cout << "result is " << r2 << endl;
+    cout << "result is " << r3 << endl;
 
     return 0;
 }
