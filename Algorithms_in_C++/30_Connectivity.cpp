@@ -11,7 +11,6 @@ typedef struct weight_edge
 {
     int s;
     int e;
-    int i;
 }we;
 
 bool isCycle(vector<we*> &now, we* pe, vector<int> &dad, bool update = false)
@@ -33,8 +32,8 @@ int getNeighbor(const char* sample[], int num, vector<vector<we>> & wes)
     {
         int s = sample[i][0]-'A';
         int e = sample[i][1]-'A';
-        we w1 = { s, e, i};	
-	we w2 = { e, s, i};
+        we w1 = { s, e };	
+	we w2 = { e, s };
 
 	wes[s].emplace_back(w1);
 	wes[e].emplace_back(w2);
@@ -75,27 +74,34 @@ void visitDFS2(int start, vector<vector<we>> &wes, vector<int> &seq)
 
 }
 
-int visitPoint2(int start, vector<vector<we>> &wes, vector<int> &seq, vector<int> &depth, int parent = -1, int d = 0)
+bool checkRoot(int start, vector<vector<we>> &wes)
 {
-    int min = d;
-    seq.emplace_back(start);
-    depth[start] = d;
-    for(int i = 0; i < wes[start].size(); i++)
+    int min = (start == 0) ? 1: 0;
+    vector<int> dad(wes.size(), -1);
+    for(int i = 0; i < wes.size(); i++)
     {
-	we &w = wes[start][i];
-	if (depth[w.e] != -1) 
+	if (i == start) continue;
+	for(int j = 0; j < wes[i].size(); j++)
 	{
-	    if (w.e != parent && depth[w.e] < min) min = depth[w.e];
-	    continue;
+            we &w = wes[i][j];
+	    if (w.e == start) continue;
+	    int s = w.s; while(dad[s] != -1) s = dad[s];
+	    int e = w.e; while(dad[e] != -1) e = dad[e];
+	    if (s > e) dad[s] = e;
+	    if (e > s) dad[e] = s;
 	}
-
-	int m = visitPoint2(w.e, wes, seq, depth, start, d+1);
-	if (m < min) min = m;
     }
 
-    if (min == d && wes[start].size() > 1) cout << "A "; 
-    cout << start << ":" << d << ":" << min << endl;
-    return min;
+    for(int i = 0; i< wes.size(); i++)
+    {
+        if (i == start) continue;
+	int j = i;
+	while(dad[j] != -1) j = dad[j];
+	//cout << i << " " << j << " " << dad[i] << endl;
+	if (j != min) return false;
+    }
+
+    return true;
 }
 
 int visitPoint(int start, vector<vector<we>> &wes, vector<int> &seq, vector<int> &depth, set<int> &result, int d = 0)
@@ -119,7 +125,11 @@ int visitPoint(int start, vector<vector<we>> &wes, vector<int> &seq, vector<int>
         {
 	    int m = visitPoint(w.e, wes, seq, depth, result, d+1);
     	    if (m < min) min = m;
-	    if (m >= depth[start]) result.insert(start);
+	    if (m >= depth[start]) 
+	    {
+		if (d != 0 || checkRoot(start, wes) == false) 
+		    result.insert(start);
+	    }
 	}
     }
 
@@ -171,12 +181,16 @@ int main(int argc, char* argv[])
     for(int i = 0; i< seq.size(); i++) cout << seq2[i] << ",";
     cout << endl;
 
-    vector<int> seq3;
-    vector<int> depth(n, -1);
-    set<int> result;
-    visitPoint('F'-'A', wes, seq3, depth, result);
-    for(auto it = result.begin(); it != result.end(); it++) cout << *it << ",";
-    cout << endl;
+    for(char c = start; c <= end; c++)
+    {
+        vector<int> seq3;
+        vector<int> depth(n, -1);
+        set<int> result;
+        visitPoint(c-'A', wes, seq3, depth, result);
+        cout << c << ":";
+        for(auto it = result.begin(); it != result.end(); it++) cout << *it << ",";
+        cout << endl;
+    }
 
     vector<int> seq4;
     vector<bool> mask4(n, false);
