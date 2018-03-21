@@ -13,18 +13,41 @@ typedef struct weight_edge
     int e;
 }we;
 
-bool isCycle(vector<we*> &now, we* pe, vector<int> &dad, bool update = false)
+class unionFind
 {
-    int s = pe->s;
-    int e = pe->e;
+public: 
+    unionFind(int num) 
+    { 
+	this->num = num; 
+	dad.resize(num, -1); 
+    }
+    
+    bool link(int a, int b)
+    {
+        int aa = find(a); if (aa == -1) return false;
+        int bb = find(b); if (bb == -1) return false;
+        if (aa < bb) dad[bb] = aa;
+        if (aa > bb) dad[aa] = bb;
+    }
 
-    while(dad[s] != -1) s = dad[s];
-    while(dad[e] != -1) e = dad[e];
-    if (update && s < e) dad[e] = s;
-    if (update && e < s) dad[s] = e;
+    int find(int a)
+    {
+        if (a < 0 or a >= num) return -1;
+        while(dad[a] != -1) a = dad[a];
+        return a; 
+    }
 
-    return (s == e);
-}
+    bool cycle(int a, int b)
+    {
+        int aa = find(a); if (aa == -1) return false;
+        int bb = find(b); if (bb == -1) return false;
+        return (aa == bb);
+    }
+
+private: 
+    int num;
+    vector<int> dad;
+};
 
 int getNeighbor(const char* sample[], int num, vector<vector<we>> & wes)
 {
@@ -76,6 +99,7 @@ void visitDFS2(int start, vector<vector<we>> &wes, vector<int> &seq)
 
 bool checkRoot(int start, vector<vector<we>> &wes)
 {
+    unionFind uf(wes.size());
     int min = (start == 0) ? 1: 0;
     vector<int> dad(wes.size(), -1);
     for(int i = 0; i < wes.size(); i++)
@@ -85,18 +109,14 @@ bool checkRoot(int start, vector<vector<we>> &wes)
 	{
             we &w = wes[i][j];
 	    if (w.e == start) continue;
-	    int s = w.s; while(dad[s] != -1) s = dad[s];
-	    int e = w.e; while(dad[e] != -1) e = dad[e];
-	    if (s > e) dad[s] = e;
-	    if (e > s) dad[e] = s;
+	    uf.link(w.s, w.e);
 	}
     }
 
     for(int i = 0; i< wes.size(); i++)
     {
         if (i == start) continue;
-	int j = i;
-	while(dad[j] != -1) j = dad[j];
+	int j = uf.find(i);
 	//cout << i << " " << j << " " << dad[i] << endl;
 	if (j != min) return false;
     }
