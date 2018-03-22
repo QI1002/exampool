@@ -81,7 +81,7 @@ void findConvex2(point ps[], int num, vector<int> &result)
 	vp[i].f = 0;
     }
 
-    cout << first << endl;
+    //cout << first << endl;
     vector<int> order(num);
     for(int i = 0; i < vp.size(); i++)
     {
@@ -98,15 +98,28 @@ void findConvex2(point ps[], int num, vector<int> &result)
     int s2 = order[1];
     int s3 = order[2];
     result.emplace_back(s1); 
+    result.emplace_back(s2); 
     int n = order.size();
     order.emplace_back(s1);
-    for(int i = 1; i < n; i++)
+    order.emplace_back(s2);
+    for(int i = 2; i < n; i++)
     {
 	s1 = result[result.size()-1]; 
 	s2 = order[i];
 	s3 = order[i+1];
         int ccw = CCW(vp[s1].p, vp[s2].p, vp[s3].p);
+	//cout << s1 << "," << s2 << "," << s3 << "," << ccw << endl;
 	if (ccw == 1) result.emplace_back(s2);
+	else 
+	{
+            do {
+                s1 = result[result.size()-2];
+		s2 = result[result.size()-1];
+		s3 = order[i+1];
+                ccw = CCW(vp[s1].p, vp[s2].p, vp[s3].p);
+		if (ccw == -1) result.pop_back();
+	    }while(ccw == -1);
+	}
     }
 }
 
@@ -122,8 +135,6 @@ void findConvex(point ps[], int num, vector<int> &result)
 	vp[i].f = 0;
     }
 
-    //cout << first << endl;
-    //sort(vp.begin(), vp.end(), ycomp());
     float prevf = 0.0;
     int next = first;
     result.emplace_back(next);
