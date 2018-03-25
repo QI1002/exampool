@@ -1,4 +1,8 @@
 
+//1. range search point 2D by 2 1D range search and merge the result
+//2. range search point 2D by 1 2D range search 
+//[TODO] 1. why no emplace_back gcc 4.9.2
+//       2. why emplace_back/put_back will NG in MingGW gcc
 
 #include <iostream>
 #include <vector>
@@ -38,7 +42,7 @@ public:
         treeNode* pNode = new treeNode();
 	pNode->left = pNode->right = NULL;
 	pNode->key = key; pNode->index = index;
-        pool.emplace_back(pNode);
+        pool.push_back(pNode);
 	if (root == NULL) { root = pNode; return; }
 	treeNode *p = root;
 	treeNode *q = root;
@@ -57,7 +61,7 @@ public:
 	bool b2 = (p->key <= end);
 
 	//cout << p->key << " " << b1 << " " << b2 << endl;
-	if (b1 && b2) find.emplace_back(p->index);
+	if (b1 && b2) find.push_back(p->index);
 	if (b1 && p->left != NULL) range(start, end, find, p->left); 
 	if (b2 && p->right != NULL) range(start, end, find, p->right); 
     }
@@ -85,7 +89,7 @@ void rangeSearch(searchTree &xSearch, searchTree &ySearch, int left, int right, 
     {
         bool b1 = xFind[x] <= yFind[y];
 	bool b2 = xFind[x] >= yFind[y];
-	if (b1 && b2) result.emplace_back(xFind[x]);
+	if (b1 && b2) result.push_back(xFind[x]);
 	if (b1) x++;
 	if (b2) y++;
     }
@@ -110,7 +114,7 @@ public:
         treeNode2* pNode = new treeNode2();
 	pNode->left = pNode->right = NULL;
 	pNode->p = pp; pNode->index = index; pNode->xy = 0;
-        pool.emplace_back(pNode);
+        pool.push_back(pNode);
 	if (root == NULL) { root = pNode; return; }
 	treeNode2 *p = root;
 	treeNode2 *q = root;
@@ -141,7 +145,7 @@ public:
 	    int other = (p->xy) ? 0 : 1;
 	    int ov = (p->xy) ? p->p.x : p->p.y;
 	    if ((ov >= start[other]) && (ov <= end[other]))
-	        find.emplace_back(p->index);
+	        find.push_back(p->index);
 	}
 
 	if (b1 && p->left != NULL) range(start, end, find, p->left); 
