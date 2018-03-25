@@ -1,0 +1,209 @@
+
+//
+//
+
+
+#include <iostream>
+#include <vector>
+#include <set>
+#include <algorithm>
+#include <utility>
+
+using namespace std;
+#define ELEMOF(x) (sizeof(x)/sizeof(x[0]))
+
+typedef struct _point 
+{
+    int x,y;
+}point;
+
+typedef struct _line 
+{
+    point s,e;
+}line;
+
+typedef struct _hline
+{
+    int value;	
+    int tag; // 1: vertical line 0,2:start/end of horizontal line
+    int index;
+}hline;
+
+class hcomp
+{
+public:
+    bool operator()(const hline &a, const hline &b)
+    {
+	if (a.value == b.value) return a.tag < b.tag;    
+        return a.value < b.value;
+    }
+};
+
+void getIntersectByH(const line ls[], int num, vector<pair<int, int>> &result)
+{
+    vector<hline> hh;	
+    for(int i = 0; i< num; i++)
+    {
+        bool isV = ls[i].s.x == ls[i].e.x;
+        bool isH = ls[i].s.y == ls[i].e.y;
+
+        hline h;	
+	if (isV) 
+	{
+	    hline h = { ls[i].s.x, 1, i };
+	    hh.emplace_back(h);
+	}
+	if (isH) 
+	{ 
+	    hline h1 = { ls[i].s.x, 0, i }; 
+	    hline h2 = { ls[i].e.x, 2, i }; 
+	    hh.emplace_back(h1);
+	    hh.emplace_back(h2);
+	}
+    }
+
+    sort(hh.begin(), hh.end(), hcomp());
+    set<int> inH;
+    for(int i = 0; i< hh.size(); i++)
+    {
+        int j = hh[i].index;
+	    
+        if (hh[i].tag == 0) inH.insert(j);
+        
+	if (hh[i].tag == 1)
+	{
+	    for(auto it = inH.begin(); it != inH.end(); it++)
+	    {
+		int hi = *it;    
+                if (ls[j].s.y <= ls[hi].s.y &&
+		    ls[j].e.y >= ls[hi].e.y)
+		    result.emplace_back(pair<int,int>(j, hi));	
+	    }
+	}
+
+        if (hh[i].tag == 2) inH.erase(j);
+    }
+}
+
+typedef struct _vline
+{
+    int value;	
+    int tag; // 1: horizontal line 0,2:start/end of vertical line
+    int index;
+}vline;
+
+class vcomp
+{
+public:
+    bool operator()(const vline &a, const vline &b)
+    {
+	if (a.value == b.value) return a.tag < b.tag;    
+        return a.value < b.value;
+    }
+};
+
+void getIntersectByV(const line ls[], int num, vector<pair<int, int>> &result)
+{
+    vector<vline> vv;	
+    for(int i = 0; i< num; i++)
+    {
+        bool isV = ls[i].s.x == ls[i].e.x;
+        bool isH = ls[i].s.y == ls[i].e.y;
+
+        vline v;	
+	if (isH) 
+	{
+	    vline v = { ls[i].s.y, 1, i };
+	    vv.emplace_back(v);
+	}
+	if (isV) 
+	{ 
+	    vline v1 = { ls[i].s.y, 0, i }; 
+	    vline v2 = { ls[i].e.y, 2, i }; 
+	    vv.emplace_back(v1);
+	    vv.emplace_back(v2);
+	}
+    }
+
+    sort(vv.begin(), vv.end(), vcomp());
+    set<int> inV;
+    for(int i = 0; i< vv.size(); i++)
+    {
+        int j = vv[i].index;
+	    
+        if (vv[i].tag == 0) inV.insert(j);
+        
+	if (vv[i].tag == 1)
+	{
+	    for(auto it = inV.begin(); it != inV.end(); it++)
+	    {
+		int vi = *it;    
+                if (ls[j].s.x <= ls[vi].s.x &&
+		    ls[j].e.x >= ls[vi].e.x)
+		    result.emplace_back(pair<int,int>(j, vi));	
+	    }
+	}
+
+        if (vv[i].tag == 2) inV.erase(j);
+    }
+}
+
+int CCW(point &p0, point &p1, point &p2)
+{
+    int dx1, dx2, dy1, dy2;
+    
+    dx1 = p1.x - p0.x; dy1 = p1.y - p0.y;
+    dx2 = p2.x - p0.x; dy2 = p2.y - p0.y;
+
+    if (dx1*dy2 > dy1*dx2) return 1;
+    if (dx1*dy2 < dy1*dx2) return -1;
+    // if equal means dx1/dy1 == dx2/dy2
+    if ((dx1*dx2 < 0) || (dy1*dy2 < 0)) return -1;
+    if ((dx1*dx1+dy1*dy1) < (dx2*dx2+dy2*dy2)) return 1;
+    return 0;
+}
+
+bool isIntersect(line l1, line l2)
+{
+    int ccw1 = CCW(l1.s, l1.e, l2.s);
+    int ccw2 = CCW(l1.s, l1.e, l2.e);
+    int ccw3 = CCW(l2.s, l2.e, l1.s);
+    int ccw4 = CCW(l2.s, l2.e, l1.e);
+
+    //cout << ccw1 << " " << ccw2 << " " << ccw3 << " " << ccw4 << endl;
+    return (ccw1*ccw2 <= 0 && ccw3*ccw4 <= 0);
+}
+
+void getIntersect(const line ls[], int num, vector<pair<int, int>> &result)
+{
+    for(int i = 0; i < num; i++)
+	for(int j = i+1; j < num; j++)
+	{
+            if (isIntersect(ls[i], ls[j])) 
+		result.emplace_back(pair<int, int>(i, j));
+        }
+}
+
+int main(int argc, char* argv[])
+{
+    line ls[] = { {{0,12}, {11,12}}, {{6,9}, {6,11}},{{2,0}, {2,10}},   
+                  {{5,4}, {5,20}}, {{9,2}, {9,14}},{{0,9}, {0,22}},   
+                  {{7,6}, {15,6}}, {{10,10}, {10,20}}, {{14,7}, {14,12}}};   
+
+    vector<pair<int, int>> resultH;		  
+    getIntersectByH(ls, ELEMOF(ls), resultH);         
+    for(int i = 0; i < resultH.size(); i++)
+	cout << resultH[i].first << " " << resultH[i].second << endl;
+    cout << "==============================" << endl; 
+    vector<pair<int, int>> resultV;		  
+    getIntersectByV(ls, ELEMOF(ls), resultV);         
+    for(int i = 0; i < resultV.size(); i++)
+	cout << resultV[i].first << " " << resultV[i].second << endl;
+    cout << "==============================" << endl; 
+    vector<pair<int, int>> result;		  
+    getIntersect(ls, ELEMOF(ls), result);         
+    for(int i = 0; i < result.size(); i++)
+	cout << result[i].first << " " << result[i].second << endl;
+    return 0;
+}
+
