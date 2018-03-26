@@ -1,6 +1,6 @@
 
-//
-//
+// 1. use the 2 ways to get the intersection for horizontal/vertical lines
+// 2. get the overlay part of 1d line
 
 
 #include <iostream>
@@ -11,6 +11,11 @@
 
 using namespace std;
 #define ELEMOF(x) (sizeof(x)/sizeof(x[0]))
+
+typedef struct _line1d 
+{
+    int s,e;
+}line1d;
 
 typedef struct _point 
 {
@@ -158,7 +163,7 @@ int CCW(point &p0, point &p1, point &p2)
     if (dx1*dy2 > dy1*dx2) return 1;
     if (dx1*dy2 < dy1*dx2) return -1;
     // if equal means dx1/dy1 == dx2/dy2
-    if ((dx1*dx2 < 0) || (dy1*dy2 < 0)) return -1;
+    if ((dx1*dx2 <= 0) || (dy1*dy2 <= 0)) return -1;
     if ((dx1*dx1+dy1*dy1) < (dx2*dx2+dy2*dy2)) return 1;
     return 0;
 }
@@ -184,12 +189,120 @@ void getIntersect(const line ls[], int num, vector<pair<int, int>> &result)
         }
 }
 
+typedef struct _hline1d
+{
+    int value;	
+    int tag; // 0,1:start/end of horizontal line
+    int index;
+}hline1d;
+
+class hcomp1d
+{
+public:
+
+    bool operator()(const hline1d &a, const hline1d &b)
+    {
+	if (a.value == b.value) 
+	{
+            if (a.tag == b.tag)
+	    {
+                if (a.tag == 0) return a.index < b.index;
+		else return a.index > b.index;	
+	    }
+	    else return a.tag < b.tag;    
+	}
+
+        return a.value < b.value;
+    }
+};
+
+class paircomp
+{
+public:
+
+    bool operator()(const pair<int,int> &a, const pair<int,int> &b)
+    {
+	if (a.first == b.first) 
+	    return a.second < b.second;    
+        return a.first < b.first;
+    }
+};
+
+bool getOverlay(const line1d &l1, const line1d &l2, line1d &overlay)
+{
+    if (l1.s <= l2.s && l2.s <= l1.e)
+    {
+        if (l1.e <= l2.e) 
+	{ overlay.s = l2.s; overlay.e = l1.e; return true; }
+	else 	
+	{ overlay.s = l2.s; overlay.e = l2.e; return true; } 
+    }
+
+    if (l2.s <= l1.s && l1.s <= l2.e)
+    {
+        if (l2.e <= l1.e) 
+	{ overlay.s = l1.s; overlay.e = l2.e; return true; }
+	else 	
+	{ overlay.s = l1.s; overlay.e = l1.e; return true; } 
+    }
+
+    return false;
+}
+
+void getFastIntersect1d(const line1d l1s[], int num, vector<pair<int, int>> &result)
+{
+    vector<hline1d> hh;	
+    for(int i = 0; i< num; i++)
+    {
+        hline1d h1 = { l1s[i].s, 0, i }; 
+        hline1d h2 = { l1s[i].e, 1, i }; 
+        hh.emplace_back(h1);
+        hh.emplace_back(h2);
+    }
+
+    sort(hh.begin(), hh.end(), hcomp1d());
+    set<int> inH;
+    for(int i = 0; i< hh.size(); i++)
+    {
+        int j = hh[i].index;
+	    
+        if (hh[i].tag == 0) 
+	{
+	    for(auto it = inH.begin(); it != inH.end(); it++)
+	    {
+		int hi = *it;    
+		if (j <hi) result.emplace_back(pair<int,int>(j, hi));	
+		else result.emplace_back(pair<int,int>(hi, j));	
+	    }
+	    inH.insert(j);
+        }
+
+        if (hh[i].tag == 1) inH.erase(j);
+    }
+
+    sort(result.begin(), result.end(), paircomp());
+}	
+
+void getIntersect1d(const line1d l1s[], int num, vector<pair<int, int>> &result)
+{
+    for(int i = 0; i< num; i++)
+	for(int j = i+1; j< num; j++)    
+        {
+	    line1d overlay;
+
+	    if (getOverlay(l1s[i], l1s[j], overlay))
+		result.emplace_back(pair<int, int>(i, j));    
+        }
+}	
+
 int main(int argc, char* argv[])
 {
     line ls[] = { {{0,12}, {11,12}}, {{6,9}, {6,11}},{{2,0}, {2,10}},   
                   {{5,4}, {5,20}}, {{9,2}, {9,14}},{{0,9}, {0,22}},   
                   {{7,6}, {15,6}}, {{10,10}, {10,20}}, {{14,7}, {14,12}}};   
 
+    line1d l1s[] = { {12,12}, {9,11}, {0,10}, {4,20}, {2,14}, {9,22}, {6,6}, {10,20}, {7,12}};   
+    
     vector<pair<int, int>> resultH;		  
     getIntersectByH(ls, ELEMOF(ls), resultH);         
     for(int i = 0; i < resultH.size(); i++)
@@ -204,6 +317,36 @@ int main(int argc, char* argv[])
     getIntersect(ls, ELEMOF(ls), result);         
     for(int i = 0; i < result.size(); i++)
 	cout << result[i].first << " " << result[i].second << endl;
+    
+    cout << "==============================" << endl; 
+    vector<pair<int, int>> resultf1d;		  
+    getFastIntersect1d(l1s, ELEMOF(l1s), resultf1d);         
+    for(int i = 0; i < resultf1d.size(); i++)
+    {
+	int j = resultf1d[i].first;
+	int k = resultf1d[i].second;
+	line1d overlay;
+	bool r = getOverlay(l1s[j], l1s[k], overlay);
+	cout << j << "(" << l1s[j].s << "," << l1s[j].e << ")&"; 
+	cout << k << "(" << l1s[k].s << "," << l1s[k].e << ")=";
+	if (r) 	cout << "(" << overlay.s << "," << overlay.e << ")" << endl;
+	else cout << "(NULL)" << endl;
+    }   
+    cout << "==============================" << endl; 
+    vector<pair<int, int>> result1d;		  
+    getIntersect1d(l1s, ELEMOF(l1s), result1d);         
+    for(int i = 0; i < result1d.size(); i++)
+    {
+	int j = result1d[i].first;
+	int k = result1d[i].second;
+	line1d overlay;
+	bool r = getOverlay(l1s[j], l1s[k], overlay);
+	cout << j << "(" << l1s[j].s << "," << l1s[j].e << ")&"; 
+	cout << k << "(" << l1s[k].s << "," << l1s[k].e << ")=";
+	if (r) 	cout << "(" << overlay.s << "," << overlay.e << ")" << endl;
+	else cout << "(NULL)" << endl;
+    }   
+    
     return 0;
 }
 
