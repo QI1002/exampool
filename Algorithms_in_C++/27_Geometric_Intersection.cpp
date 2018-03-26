@@ -249,13 +249,13 @@ bool getOverlay(const line1d &l1, const line1d &l2, line1d &overlay)
     return false;
 }
 
-void getFastIntersect1d(const line1d l1s[], int num, vector<pair<int, int>> &result)
+void getFastIntersect1d(const vector<line1d> vl1s, vector<pair<int, int>> &result)
 {
     vector<hline1d> hh;	
-    for(int i = 0; i< num; i++)
+    for(int i = 0; i< vl1s.size(); i++)
     {
-        hline1d h1 = { l1s[i].s, 0, i }; 
-        hline1d h2 = { l1s[i].e, 1, i }; 
+        hline1d h1 = { vl1s[i].s, 0, i }; 
+        hline1d h2 = { vl1s[i].e, 1, i }; 
         hh.emplace_back(h1);
         hh.emplace_back(h2);
     }
@@ -295,6 +295,66 @@ void getIntersect1d(const line1d l1s[], int num, vector<pair<int, int>> &result)
         }
 }	
 
+void getGeneralIntersect(const line ls[], int num, vector<pair<int, int>> &result)
+{
+    vector<line1d> xlines;
+    vector<line1d> ylines;
+
+    for(int i = 0; i< num; i++)
+    {
+        line1d xl,yl;
+	
+	if (ls[i].s.x < ls[i].e.x)
+	{
+	    xl.s = ls[i].s.x;
+	    xl.e = ls[i].e.x;
+	}else
+	{
+	    xl.e = ls[i].s.x;
+	    xl.s = ls[i].e.x;
+	}
+
+	if (ls[i].s.y < ls[i].e.y)
+	{	
+            yl.s = ls[i].s.y;
+	    yl.e = ls[i].e.y;
+	}else
+	{
+	    yl.e = ls[i].s.y;
+	    yl.s = ls[i].e.y;
+	}
+
+	xlines.emplace_back(xl);
+	ylines.emplace_back(yl);
+    }
+
+    vector<pair<int, int>> resultx;		  
+    getFastIntersect1d(xlines, resultx);         
+    //for(int i = 0; i < resultx.size(); i++)
+    //	cout << resultx[i].first << " " << resultx[i].second << endl;
+    
+    vector<pair<int, int>> resulty;		  
+    getFastIntersect1d(ylines, resulty);         
+    //for(int i = 0; i < resulty.size(); i++)
+    //	cout << resulty[i].first << " " << resulty[i].second << endl;
+
+    int x = 0;
+    int y = 0;
+    paircomp t;
+    while(x < resultx.size() && y < resulty.size())
+    {
+	if (resultx[x] == resulty[y])
+	{
+            if (isIntersect(ls[resultx[x].first], ls[resultx[x].second]))	    
+	        result.emplace_back(resultx[x]);
+	    x++; y++; continue;
+	}
+
+        bool r = t(resultx[x], resulty[y]);
+        if (r) x++; else y++;   
+    }
+}
+
 int main(int argc, char* argv[])
 {
     line ls[] = { {{0,12}, {11,12}}, {{6,9}, {6,11}},{{2,0}, {2,10}},   
@@ -302,6 +362,11 @@ int main(int argc, char* argv[])
                   {{7,6}, {15,6}}, {{10,10}, {10,20}}, {{14,7}, {14,12}}};   
 
     line1d l1s[] = { {12,12}, {9,11}, {0,10}, {4,20}, {2,14}, {9,22}, {6,6}, {10,20}, {7,12}};   
+
+    // DF, FI, HI 
+    line ls2[] = { {{2,16}, {1,22}}, {{10,5}, {5,14}},{{3,2}, {5,8}},   
+                   {{9,12}, {2,25}}, {{13,20}, {10,22}},{{1,10}, {11,27}},   
+                   {{23,7}, {22,19}}, {{14,4}, {15,25}}, {{24,22}, {4,27}}};   
     
     vector<pair<int, int>> resultH;		  
     getIntersectByH(ls, ELEMOF(ls), resultH);         
@@ -320,7 +385,8 @@ int main(int argc, char* argv[])
     
     cout << "==============================" << endl; 
     vector<pair<int, int>> resultf1d;		  
-    getFastIntersect1d(l1s, ELEMOF(l1s), resultf1d);         
+    vector<line1d> vl1s; vl1s.assign(l1s, l1s+ELEMOF(l1s));
+    getFastIntersect1d(vl1s, resultf1d);         
     for(int i = 0; i < resultf1d.size(); i++)
     {
 	int j = resultf1d[i].first;
@@ -346,7 +412,19 @@ int main(int argc, char* argv[])
 	if (r) 	cout << "(" << overlay.s << "," << overlay.e << ")" << endl;
 	else cout << "(NULL)" << endl;
     }   
-    
+   
+    cout << "==============================" << endl; 
+    vector<pair<int, int>> result2;		  
+    getIntersect(ls2, ELEMOF(ls2), result2);         
+    for(int i = 0; i < result2.size(); i++)
+	cout << result2[i].first << " " << result2[i].second << endl;
+
+    cout << "==============================" << endl; 
+    vector<pair<int, int>> resultg;		  
+    getGeneralIntersect(ls2, ELEMOF(ls2), resultg);
+    for(int i = 0; i < resultg.size(); i++)
+	cout << resultg[i].first << " " << resultg[i].second << endl;
+
     return 0;
 }
 
