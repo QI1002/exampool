@@ -11,14 +11,14 @@ using namespace std;
 
 void getNext(string &pattern, vector<int> &result, bool improve = true)
 {
-    result.resize(pattern.size(), 0);
+    result.resize(pattern.size()+1, 0);
     for(int i = 1; i < pattern.size(); i++)
     {
         int j = 0;
 	while((i+j) < pattern.size() && pattern[i+j] == pattern[j])
 	{	
 	    j++;
-	    if ((i+j) < pattern.size() && result[i+j] < j) result[i+j] = j;
+	    if (result[i+j] < j) result[i+j] = j;
 	}
     }
 
@@ -39,13 +39,12 @@ void findPattern(string &example, string &pattern, vector<int> &find, bool impro
     for(int i = 0; i < result.size(); i++) cout << result[i] << " ";
     cout << endl;   
 
-    int n = example.size();
+    int i = 0;
     int j = 0;
-    for(int i = 0; i < n; i++)
+    for(i = 0; i < example.size(); i++)
     {
-	cout << i << " " << j << endl;
-	if (j == pattern.size()) { find.emplace_back(i-j); j = 0; break; }    
-#if 1
+	//cout << i << " " << j << endl;
+	if (j == pattern.size()) { find.emplace_back(i-j); j = result[j]; }    
 	while(example[i] != pattern[j])
 	{
             j = result[j];
@@ -53,31 +52,27 @@ void findPattern(string &example, string &pattern, vector<int> &find, bool impro
 	}
 
 	j++;
-#else
-	if (example[i] == pattern[j]) { j++; continue; }
-        else 
-	{
-	    bool match = false;
-	    while(result[j] != -1)
-	    {
-                j = result[j];
-	        if (pattern[j] == example[i]) { match = true; j++; break; } 
-	    }
-	    
-	    if (match == false) j = 0;
-	}
-#endif
     }
+
+    if (j == pattern.size()) find.emplace_back(i-j);
+   
+    cout << example << "=";
+    for(int i = 0; i < find.size(); i++) cout << find[i] << " ";
+    cout << endl;
 }
 
 int main(int argc, char* argv[])
 {
-    string example = "100111010010100010100111000111";
+    string example1 = "100111010010100010100111000111";
+    string example2 = "1001110100101000101001110100111";
+    string example3 = "1001110100111000101001010100111";
     string pattern = "10100111";
 
     vector<int> find;
-    findPattern(example, pattern, find);
-    for(int i = 0; i < find.size(); i++) cout << find[i] << " ";
-    cout << endl;
+    findPattern(example1, pattern, find);
+    find.clear();
+    findPattern(example2, pattern, find);
+    find.clear();
+    findPattern(example3, pattern, find);
     return 0;
 }
