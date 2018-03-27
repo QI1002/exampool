@@ -17,7 +17,7 @@ void getNext(string &pattern, vector<int> &result, bool improve = true)
         int j = 0;
 	while((i+j) < pattern.size() && pattern[i+j] == pattern[j])
 	{	
-	    j++;
+	    j++; // it's important to use increaed j for next statement
 	    if (result[i+j] < j) result[i+j] = j;
 	}
     }
@@ -51,7 +51,7 @@ void findPattern(string &example, string &pattern, vector<int> &find, bool impro
 	    if (j == -1) break;
 	}
 
-	j++;
+	j++; // it also works for -1 to 0  
     }
 
     if (j == pattern.size()) find.emplace_back(i-j);
@@ -63,12 +63,15 @@ void findPattern(string &example, string &pattern, vector<int> &find, bool impro
 
 int main(int argc, char* argv[])
 {
+    string example0 = "100111010010100010100101000111";
     string example1 = "100111010010100010100111000111";
     string example2 = "1001110100101000101001110100111";
     string example3 = "1001110100111000101001010100111";
     string pattern = "10100111";
 
     vector<int> find;
+    findPattern(example0, pattern, find);
+    find.clear();
     findPattern(example1, pattern, find);
     find.clear();
     findPattern(example2, pattern, find);
