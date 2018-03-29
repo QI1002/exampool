@@ -39,26 +39,6 @@ expr* newNULexpr(vector<expr*> &all, string data)
     return e;
 }
 
-expr* newCATexpr(vector<expr*> &all, expr** data, int num)
-{
-    expr* e = new expr();
-    e->t = cat;
-    for(int i = 0; i< num; i++) e->sub.emplace_back(data[i]);
-    all.emplace_back(e);
-
-    return e;
-}
-
-expr* newOREexpr(vector<expr*> &all, expr** data, int num)
-{
-    expr* e = new expr();
-    e->t = ore;
-    for(int i = 0; i< num; i++) e->sub.emplace_back(data[i]);
-    all.emplace_back(e);
-
-    return e;
-}
-
 expr* newCATexpr(vector<expr*> &all, vector<expr*> data)
 {
     expr* e = new expr();
@@ -288,16 +268,16 @@ void getexample1(vector<element> &pool)
     expr* e0 = newNULexpr(all, "A");
     expr* e1 = newMULexpr(all, e0);
     expr* e2 = newNULexpr(all, "B");
-    expr* s1[] = {e1,e2};
-    expr* e3 = newCATexpr(all, s1, ELEMOF(s1));
+    vector<expr*> s1 = {e1,e2};
+    expr* e3 = newCATexpr(all, s1);
 
     expr* e4 = newNULexpr(all, "AC");
-    expr* s2[] = {e3,e4};
-    expr* e5 = newOREexpr(all, s2, ELEMOF(s2));
+    vector<expr*> s2 = {e3,e4};
+    expr* e5 = newOREexpr(all, s2);
 
     expr* e6 = newNULexpr(all, "D");
-    expr* s3[] = {e5,e6};
-    expr* e7 = newCATexpr(all, s3, ELEMOF(s3));
+    vector<expr*> s3 = {e5,e6};
+    expr* e7 = newCATexpr(all, s3);
 
     getElements(pool, e7);
     showElements(pool);
@@ -311,16 +291,16 @@ void getexample2(vector<element> &pool)
 
     expr* e1 = newNULexpr(all, "A");
     expr* e2 = newNULexpr(all, "B");
-    expr* s1[] = {e1,e2};
-    expr* e3 = newOREexpr(all, s1, ELEMOF(s1));
+    vector<expr*> s1 = {e1,e2};
+    expr* e3 = newOREexpr(all, s1);
 
     expr* e4 = newNULexpr(all, "C");
-    expr* s2[] = {e3,e4};
-    expr* e5 = newOREexpr(all, s2, ELEMOF(s2));
+    vector<expr*> s2 = {e3,e4};
+    expr* e5 = newOREexpr(all, s2);
 
     expr* e6 = newNULexpr(all, "DE");
-    expr* s3[] = {e5,e6};
-    expr* e7 = newCATexpr(all, s3, ELEMOF(s3));
+    vector<expr*> s3 = {e5,e6};
+    expr* e7 = newCATexpr(all, s3);
     
     getElements(pool, e7);
     showElements(pool);
