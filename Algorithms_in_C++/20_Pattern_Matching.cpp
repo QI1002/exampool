@@ -58,6 +58,26 @@ expr* newOREexpr(vector<expr*> &all, expr** data, int num)
     return e;
 }
 
+expr* newCATexpr(vector<expr*> &all, vector<expr*> data)
+{
+    expr* e = new expr();
+    e->t = cat;
+    for(int i = 0; i< data.size(); i++) e->sub.emplace_back(data[i]);
+    all.emplace_back(e);
+
+    return e;
+}
+
+expr* newOREexpr(vector<expr*> &all, vector<expr*> data)
+{
+    expr* e = new expr();
+    e->t = ore;
+    for(int i = 0; i< data.size(); i++) e->sub.emplace_back(data[i]);
+    all.emplace_back(e);
+
+    return e;
+}
+
 expr* newMULexpr(vector<expr*> &all, expr* data)
 {
     expr* e = new expr();
@@ -68,18 +88,18 @@ expr* newMULexpr(vector<expr*> &all, expr* data)
     return e;
 }
 
-void increaseLink(element e, int offset)
+void increaseLink(element &e, int offset)
 {
     for(int i = 0; i < e.links.size(); i++) e.links[i] += offset;
 }
 
-void updateLink(vector<element> &pool, set<int> &vint, int newvalue)
+void updateLink(vector<element> &pool, int offset, set<int> &vint, int newvalue)
 {
-    for(int i = 0; i < pool.size(); i++)
+    for(int i = offset; i < pool.size(); i++)
     {
         element &e = pool[i];
 	for(int j = 0; j < e.links.size(); j++) 
-	    if (vint.find(e.links[i]) != vint.end()) e.links[i] = newvalue;
+	    if (vint.find(e.links[j]) != vint.end()) e.links[j] = newvalue;
     }
 }
 
@@ -93,12 +113,8 @@ void getElements(vector<element> &pool, expr* root)
 	    for(int i = 0; i <= root->base.size(); i++)	
             {
                 element e;
-		if (i == 0) e.c = 0;
-		else
-		{
-		    e.c = root->base[i];
-		    e.links.emplace_back(i+1); 
-                }
+		e.c = (i == 0) ? 0 : root->base[i-1];
+		e.links.emplace_back(i+1); 
 		pool.emplace_back(e);
 	    }
 	    break;
@@ -139,7 +155,7 @@ void getElements(vector<element> &pool, expr* root)
 		offset += subpool.size();
 	    }
 
-	    updateLink(pool, oldends, pool.size());
+	    updateLink(pool, 1, oldends, pool.size());
 	    break;
 	}
 	case mul:
@@ -160,8 +176,113 @@ void getElements(vector<element> &pool, expr* root)
     }
 }
 
+void showElements(vector<element> &pool)
+{
+   for(int i = 0; i < pool.size(); i++)
+   {
+       cout << i << ":";
+       if (pool[i].c == 0) cout << " "; else cout << pool[i].c;
+       for(int j = 0; j < pool[i].links.size(); j++) cout << "," << pool[i].links[j];
+       cout << endl;
+   }
+}
+
+expr* toExpr(string pattern, vector<expr*> all)
+{
+    bool pure = true;	
+    for(int i = 0; i < pattern.size(); i++)
+    {
+        char c = pattern[i]; 
+	if (c == ')' || c == '(' || c == '*' || c == '+') 
+	{   pure = false; break; }
+    }
+
+    if (pure)
+    {
+        expr* e = newNULexpr(all, pattern);
+        return e;
+    }
+
+    int start = 0;
+    int p = 0;
+    vector<string> split;
+    for(int i = 0; i < pattern.size(); i++)
+    {
+        char c = pattern[i];
+	if (c == '(') 
+	{ 
+	    p ++; 
+	    if (p == 1) {
+	        if (i != start) 
+	            split.emplace_back(pattern.substr(start, i-start)); 
+		start = i+1;
+	    }
+	}
+	
+	if (c == ')') 
+	{ 
+	    p --; 
+	    if (p == 0) {
+	        if (i != start) 
+	            split.emplace_back(pattern.substr(start, i-start)); 
+		start = i+1;
+	    }
+	}
+	
+	if (p > 0 || c == ')') continue;
+	if (c == '*' || c == '+') {
+	    if (i != start) 
+	        split.emplace_back(pattern.substr(start, i-start));
+            split.emplace_back(pattern.substr(i, 1));
+	    start = i+1;
+	}	
+    }
+
+    cout << start << endl;
+    if (start < pattern.size())
+	split.emplace_back(pattern.substr(start, pattern.size()-start)); 
+
+    cout << pattern << ":";
+    for(int i = 0; i < split.size(); i++) cout << split[i] << " ";
+    cout << endl;
+
+    start = 0;
+    vector<expr*> options;
+    for(int i = 0; i <= split.size(); i++)
+    {
+        if (i == split.size() || split[i] == "+")
+        { 
+	   vector<expr*> es;	
+	   for(int j = start; j < i; j++)
+	   {
+	       expr* ee;	   
+	       if (split[j] == "*")
+	       { 
+                   if (es.size() == 0) { cout << "syntax error about *" << endl; continue; }
+		   expr *olde = es[es.size()-1]; es.pop_back();
+		   ee = newMULexpr(all, olde);
+	       }else
+	       {
+                   ee = toExpr(split[j], all);
+	       }
+
+	       es.emplace_back(ee);
+	   }
+    
+	   if (es.size() == 0) cout << "syntax error about +" << endl;
+	   expr* e = newCATexpr(all, es);  	
+	   options.emplace_back(e);	
+           start = i+1;
+	}
+    }
+
+    if (options.size() == 1) return options[0];
+    expr* root = newOREexpr(all, options);
+    return root;
+}
+
 //(A*B+AC)D
-void getexample1()
+void getexample1(vector<element> &pool)
 {
     vector<expr*> all;
 
@@ -179,14 +300,13 @@ void getexample1()
     expr* s3[] = {e5,e6};
     expr* e7 = newCATexpr(all, s3, ELEMOF(s3));
 
-    vector<element> pool;
     getElements(pool, e7);
-    cout << pool.size() << endl;
+    showElements(pool);
     for(int i = 0; i < all.size(); i++) delete all[i];
 }
 
 //((A+B)+C)(DE)
-void getexample2()
+void getexample2(vector<element> &pool)
 {
     vector<expr*> all;
 
@@ -203,6 +323,8 @@ void getexample2()
     expr* s3[] = {e5,e6};
     expr* e7 = newCATexpr(all, s3, ELEMOF(s3));
     
+    getElements(pool, e7);
+    showElements(pool);
     for(int i = 0; i < all.size(); i++) delete all[i];
 }
 
@@ -217,15 +339,6 @@ void covertToElements(int links[][2], char gates[], int num, vector<element> &po
        e.links.assign(links[i], links[i]+j);
        pool.emplace_back(e);
    }  
-  
-#if 0   
-   for(int i = 0; i < pool.size(); i++)
-   {
-       cout << i;
-       for(int j = 0; j < pool[i].links.size(); j++) cout << "," << pool[i].links[j];
-       cout << endl;
-   }
-#endif   
 }
 
 bool patternMatch(vector<element> &pool, string &test, int start, int end)
@@ -267,22 +380,69 @@ int main(int argc, char* argv[])
     string example4 = "AAAB";
     string example5 = "BD";
     
+    string pattern2 = "((A+B)+C)(DE)";
+    string sample0 = "ADE";
+    string sample1 = "BDE";
+    string sample2 = "CDE";
+    string sample3 = "DDE";
+    string sample4 = "AD";
+    string sample5 = "ABDE";
+    string sample6 = "ADEF";
+    
     vector<element> pool;        
     int links1[][2] = {{1,2},{4,5},{3,3},{6,6},{5,1},{6,6},{7,7},{8,8}};
     char gates[] = { 0, 0, 'A', 'C', 'A', 'B', 0, 'D'};
     int start = 0;
     int end = ELEMOF(links1);
    
-    covertToElements(links1, gates, ELEMOF(links1), pool);
+#if 0    
+    //covertToElements(links1, gates, ELEMOF(links1), pool);
+    getexample1(pool); start = 0; end = pool.size();
     cout << example0 << ":" << patternMatch(pool, example0, start, end) << endl;
     cout << example1 << ":" << patternMatch(pool, example1, start, end) << endl;
     cout << example2 << ":" << patternMatch(pool, example2, start, end) << endl;
     cout << example3 << ":" << patternMatch(pool, example3, start, end) << endl;
     cout << example4 << ":" << patternMatch(pool, example4, start, end) << endl;
     cout << example5 << ":" << patternMatch(pool, example5, start, end) << endl;
+
+   
+    pool.clear();
+    getexample2(pool); start = 0; end = pool.size();
+    cout << sample0 << ":" << patternMatch(pool, sample0, start, end) << endl;
+    cout << sample1 << ":" << patternMatch(pool, sample1, start, end) << endl;
+    cout << sample2 << ":" << patternMatch(pool, sample2, start, end) << endl;
+    cout << sample3 << ":" << patternMatch(pool, sample3, start, end) << endl;
+    cout << sample4 << ":" << patternMatch(pool, sample4, start, end) << endl;
+    cout << sample5 << ":" << patternMatch(pool, sample5, start, end) << endl;
+    cout << sample6 << ":" << patternMatch(pool, sample6, start, end) << endl;
+#endif
+
+    vector<expr*> all;
+    pool.clear();
+    expr* root1 = toExpr(pattern, all); 
+    getElements(pool, root1); start = 0; end = pool.size();
+    showElements(pool);
+    cout << example0 << ":" << patternMatch(pool, example0, start, end) << endl;
+    cout << example1 << ":" << patternMatch(pool, example1, start, end) << endl;
+    cout << example2 << ":" << patternMatch(pool, example2, start, end) << endl;
+    cout << example3 << ":" << patternMatch(pool, example3, start, end) << endl;
+    cout << example4 << ":" << patternMatch(pool, example4, start, end) << endl;
+    cout << example5 << ":" << patternMatch(pool, example5, start, end) << endl;
+   
+    pool.clear();
+    expr* root2 = toExpr(pattern2, all); 
+    getElements(pool, root2); start = 0; end = pool.size();
+    showElements(pool);
+    cout << sample0 << ":" << patternMatch(pool, sample0, start, end) << endl;
+    cout << sample1 << ":" << patternMatch(pool, sample1, start, end) << endl;
+    cout << sample2 << ":" << patternMatch(pool, sample2, start, end) << endl;
+    cout << sample3 << ":" << patternMatch(pool, sample3, start, end) << endl;
+    cout << sample4 << ":" << patternMatch(pool, sample4, start, end) << endl;
+    cout << sample5 << ":" << patternMatch(pool, sample5, start, end) << endl;
+    cout << sample6 << ":" << patternMatch(pool, sample6, start, end) << endl;
     
-    getexample1();
-    getexample2();
+    for(int i = 0; i < all.size(); i++) delete all[i];
+    
     return 0;
 }
 
