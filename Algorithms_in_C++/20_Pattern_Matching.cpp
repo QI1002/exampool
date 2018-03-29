@@ -184,20 +184,6 @@ void showElements(vector<element> &pool)
 
 expr* toExpr(string pattern, vector<expr*> all)
 {
-    bool pure = true;	
-    for(int i = 0; i < pattern.size(); i++)
-    {
-        char c = pattern[i]; 
-	if (c == ')' || c == '(' || c == '*' || c == '+') 
-	{   pure = false; break; }
-    }
-
-    if (pure)
-    {
-        expr* e = newNULexpr(all, pattern);
-        return e;
-    }
-
     int start = 0;
     int p = 0;
     vector<string> split;
@@ -217,7 +203,6 @@ expr* toExpr(string pattern, vector<expr*> all)
         if (update == 2) split.emplace_back(pattern.substr(i, 1));
     }
 
-    //cout << start << endl;
     if (start < pattern.size())
 	split.emplace_back(pattern.substr(start, pattern.size()-start)); 
 
@@ -229,30 +214,32 @@ expr* toExpr(string pattern, vector<expr*> all)
     vector<expr*> options;
     for(int i = 0; i <= split.size(); i++)
     {
-        if (i == split.size() || split[i] == "+")
-        { 
-	   vector<expr*> es;	
-	   for(int j = start; j < i; j++)
-	   {
-	       expr* ee;	   
-	       if (split[j] == "*")
-	       { 
-                   if (es.size() == 0) { cout << "syntax error about *" << endl; continue; }
-		   expr *olde = es[es.size()-1]; es.pop_back();
-		   ee = newMULexpr(all, olde);
-	       }else
-	       {
-                   ee = toExpr(split[j], all);
-	       }
+        if (i < split.size() && split[i] != "+") continue;
+         
+	vector<expr*> es;	
+        for(int j = start; j < i; j++)
+        {
+            expr* ee;	   
+            if (split[j] == "*")
+            { 
+                if (es.size() == 0) { cout << "syntax error about *" << endl; continue; }
+		expr *olde = es[es.size()-1]; es.pop_back();
+	    	ee = newMULexpr(all, olde);
+            }else
+	    {
+		if (split.size() == 1) 
+                    ee = newNULexpr(all, pattern);
+		else
+                    ee = toExpr(split[j], all);
+	    }
 
-	       es.emplace_back(ee);
-	   }
-    
-	   if (es.size() == 0) cout << "syntax error about +" << endl;
-	   expr* e = newCATexpr(all, es);  	
-	   options.emplace_back(e);	
-           start = i+1;
+	    es.emplace_back(ee);
 	}
+    
+	if (es.size() == 0) cout << "syntax error about +" << endl;
+	expr* e = newCATexpr(all, es);  	
+	options.emplace_back(e);	
+        start = i+1;
     }
 
     if (options.size() == 1) return options[0];
