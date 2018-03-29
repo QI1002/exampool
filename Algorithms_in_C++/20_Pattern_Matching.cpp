@@ -7,6 +7,7 @@
 
 using namespace std;
 #define ELEMOF(x) (sizeof(x)/sizeof(x[0]))
+#define OPT 1
 
 typedef struct _element
 {
@@ -128,10 +129,16 @@ void getElements(vector<element> &pool, expr* root)
 		getElements(subpool, root->sub[i]);
 		for(int j = 0; j < subpool.size(); j++)
 		{
-                    increaseLink(subpool[j], offset);
+#if OPT
+		    if (i != 0) // this if is optional to reduce nodes
+			if (j == 0) continue; 
+			else increaseLink(subpool[j], offset-1);
+	            else
+#endif
+                        increaseLink(subpool[j], offset);
 		    pool.emplace_back(subpool[j]);
 		}
-		offset += subpool.size();
+		offset = pool.size();
 	    }
 	    break;
         }
@@ -143,16 +150,22 @@ void getElements(vector<element> &pool, expr* root)
 	    set<int> oldends;
 	    for(int i = 0; i < root->sub.size(); i++)
 	    {
+		int k = 0;    
                 vector<element> subpool;
 		getElements(subpool, root->sub[i]);
-		for(int j = 0; j < subpool.size(); j++)
+		pool[0].links.emplace_back(offset);
+#if OPT		
+		k = 1;
+		for(int j = 0; j < subpool[0].links.size(); j++)
+		    pool[0].links.emplace_back(subpool[0].links[j]);
+#endif
+		for(int j = k; j < subpool.size(); j++)
 		{
-                    increaseLink(subpool[j], offset);
+                    increaseLink(subpool[j], offset-k);
 		    pool.emplace_back(subpool[j]);
 		}
 		oldends.insert(pool.size());
-		pool[0].links.emplace_back(offset);
-		offset += subpool.size();
+		offset = pool.size();
 	    }
 
 	    updateLink(pool, 1, oldends, pool.size());
@@ -178,6 +191,7 @@ void getElements(vector<element> &pool, expr* root)
 
 void showElements(vector<element> &pool)
 {
+   cout << "-------------------------------" << endl;
    for(int i = 0; i < pool.size(); i++)
    {
        cout << i << ":";
@@ -185,6 +199,7 @@ void showElements(vector<element> &pool)
        for(int j = 0; j < pool[i].links.size(); j++) cout << "," << pool[i].links[j];
        cout << endl;
    }
+   cout << "-------------------------------" << endl;
 }
 
 expr* toExpr(string pattern, vector<expr*> all)
@@ -208,37 +223,21 @@ expr* toExpr(string pattern, vector<expr*> all)
     vector<string> split;
     for(int i = 0; i < pattern.size(); i++)
     {
-        char c = pattern[i];
-	if (c == '(') 
-	{ 
-	    p ++; 
-	    if (p == 1) {
-	        if (i != start) 
-	            split.emplace_back(pattern.substr(start, i-start)); 
-		start = i+1;
-	    }
-	}
+        int update = 0;
+	char c = pattern[i];
+
+	if (p > 0 && c != ')' && c != '(') continue;
+	if (c == '(') { p++; if (p == 1) update = 1; } 
+	if (c == ')') { p--; if (p == 0) update = 1; } 
+	if (c == '*' || c == '+') { update = 2; }
 	
-	if (c == ')') 
-	{ 
-	    p --; 
-	    if (p == 0) {
-	        if (i != start) 
-	            split.emplace_back(pattern.substr(start, i-start)); 
-		start = i+1;
-	    }
-	}
-	
-	if (p > 0 || c == ')') continue;
-	if (c == '*' || c == '+') {
-	    if (i != start) 
-	        split.emplace_back(pattern.substr(start, i-start));
-            split.emplace_back(pattern.substr(i, 1));
-	    start = i+1;
-	}	
+	if (update == 0) continue;
+	if (i != start) split.emplace_back(pattern.substr(start, i-start));
+	start = i+1;
+        if (update == 2) split.emplace_back(pattern.substr(i, 1));
     }
 
-    cout << start << endl;
+    //cout << start << endl;
     if (start < pattern.size())
 	split.emplace_back(pattern.substr(start, pattern.size()-start)); 
 
@@ -341,9 +340,12 @@ void covertToElements(int links[][2], char gates[], int num, vector<element> &po
    }  
 }
 
-bool patternMatch(vector<element> &pool, string &test, int start, int end)
+bool patternMatch(vector<element> &pool, string &test, int start = -1, int end = -1)
 {	
     const int next = -1;	
+    if (start == -1) start = 0;
+    if (end == -1) end = pool.size();
+    
     deque<int> d; 
     d.push_front(start);
     d.push_back(next);
@@ -390,56 +392,65 @@ int main(int argc, char* argv[])
     string sample6 = "ADEF";
     
     vector<element> pool;        
+    
     int links1[][2] = {{1,2},{4,5},{3,3},{6,6},{5,1},{6,6},{7,7},{8,8}};
     char gates[] = { 0, 0, 'A', 'C', 'A', 'B', 0, 'D'};
-    int start = 0;
-    int end = ELEMOF(links1);
-   
-#if 0    
-    //covertToElements(links1, gates, ELEMOF(links1), pool);
-    getexample1(pool); start = 0; end = pool.size();
-    cout << example0 << ":" << patternMatch(pool, example0, start, end) << endl;
-    cout << example1 << ":" << patternMatch(pool, example1, start, end) << endl;
-    cout << example2 << ":" << patternMatch(pool, example2, start, end) << endl;
-    cout << example3 << ":" << patternMatch(pool, example3, start, end) << endl;
-    cout << example4 << ":" << patternMatch(pool, example4, start, end) << endl;
-    cout << example5 << ":" << patternMatch(pool, example5, start, end) << endl;
-
-   
     pool.clear();
-    getexample2(pool); start = 0; end = pool.size();
-    cout << sample0 << ":" << patternMatch(pool, sample0, start, end) << endl;
-    cout << sample1 << ":" << patternMatch(pool, sample1, start, end) << endl;
-    cout << sample2 << ":" << patternMatch(pool, sample2, start, end) << endl;
-    cout << sample3 << ":" << patternMatch(pool, sample3, start, end) << endl;
-    cout << sample4 << ":" << patternMatch(pool, sample4, start, end) << endl;
-    cout << sample5 << ":" << patternMatch(pool, sample5, start, end) << endl;
-    cout << sample6 << ":" << patternMatch(pool, sample6, start, end) << endl;
-#endif
+    covertToElements(links1, gates, ELEMOF(links1), pool);
+    showElements(pool);
+    cout << example0 << ":" << patternMatch(pool, example0) << endl;
+    cout << example1 << ":" << patternMatch(pool, example1) << endl;
+    cout << example2 << ":" << patternMatch(pool, example2) << endl;
+    cout << example3 << ":" << patternMatch(pool, example3) << endl;
+    cout << example4 << ":" << patternMatch(pool, example4) << endl;
+    cout << example5 << ":" << patternMatch(pool, example5) << endl;
 
+    cout << "===============================" << endl;
+    pool.clear();
+    getexample1(pool);
+    cout << example0 << ":" << patternMatch(pool, example0) << endl;
+    cout << example1 << ":" << patternMatch(pool, example1) << endl;
+    cout << example2 << ":" << patternMatch(pool, example2) << endl;
+    cout << example3 << ":" << patternMatch(pool, example3) << endl;
+    cout << example4 << ":" << patternMatch(pool, example4) << endl;
+    cout << example5 << ":" << patternMatch(pool, example5) << endl;
+
+    cout << "===============================" << endl;   
+    pool.clear();
+    getexample2(pool);
+    cout << sample0 << ":" << patternMatch(pool, sample0) << endl;
+    cout << sample1 << ":" << patternMatch(pool, sample1) << endl;
+    cout << sample2 << ":" << patternMatch(pool, sample2) << endl;
+    cout << sample3 << ":" << patternMatch(pool, sample3) << endl;
+    cout << sample4 << ":" << patternMatch(pool, sample4) << endl;
+    cout << sample5 << ":" << patternMatch(pool, sample5) << endl;
+    cout << sample6 << ":" << patternMatch(pool, sample6) << endl;
+
+    cout << "===============================" << endl;   
     vector<expr*> all;
     pool.clear();
     expr* root1 = toExpr(pattern, all); 
-    getElements(pool, root1); start = 0; end = pool.size();
+    getElements(pool, root1);
     showElements(pool);
-    cout << example0 << ":" << patternMatch(pool, example0, start, end) << endl;
-    cout << example1 << ":" << patternMatch(pool, example1, start, end) << endl;
-    cout << example2 << ":" << patternMatch(pool, example2, start, end) << endl;
-    cout << example3 << ":" << patternMatch(pool, example3, start, end) << endl;
-    cout << example4 << ":" << patternMatch(pool, example4, start, end) << endl;
-    cout << example5 << ":" << patternMatch(pool, example5, start, end) << endl;
+    cout << example0 << ":" << patternMatch(pool, example0) << endl;
+    cout << example1 << ":" << patternMatch(pool, example1) << endl;
+    cout << example2 << ":" << patternMatch(pool, example2) << endl;
+    cout << example3 << ":" << patternMatch(pool, example3) << endl;
+    cout << example4 << ":" << patternMatch(pool, example4) << endl;
+    cout << example5 << ":" << patternMatch(pool, example5) << endl;
    
+    cout << "===============================" << endl;   
     pool.clear();
     expr* root2 = toExpr(pattern2, all); 
-    getElements(pool, root2); start = 0; end = pool.size();
+    getElements(pool, root2);
     showElements(pool);
-    cout << sample0 << ":" << patternMatch(pool, sample0, start, end) << endl;
-    cout << sample1 << ":" << patternMatch(pool, sample1, start, end) << endl;
-    cout << sample2 << ":" << patternMatch(pool, sample2, start, end) << endl;
-    cout << sample3 << ":" << patternMatch(pool, sample3, start, end) << endl;
-    cout << sample4 << ":" << patternMatch(pool, sample4, start, end) << endl;
-    cout << sample5 << ":" << patternMatch(pool, sample5, start, end) << endl;
-    cout << sample6 << ":" << patternMatch(pool, sample6, start, end) << endl;
+    cout << sample0 << ":" << patternMatch(pool, sample0) << endl;
+    cout << sample1 << ":" << patternMatch(pool, sample1) << endl;
+    cout << sample2 << ":" << patternMatch(pool, sample2) << endl;
+    cout << sample3 << ":" << patternMatch(pool, sample3) << endl;
+    cout << sample4 << ":" << patternMatch(pool, sample4) << endl;
+    cout << sample5 << ":" << patternMatch(pool, sample5) << endl;
+    cout << sample6 << ":" << patternMatch(pool, sample6) << endl;
     
     for(int i = 0; i < all.size(); i++) delete all[i];
     
