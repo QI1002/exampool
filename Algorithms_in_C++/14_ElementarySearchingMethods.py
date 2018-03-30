@@ -6,7 +6,7 @@ class seqSearch:
         self.body = []
         self.comp = 0
 
-    def print(self):
+    def show(self):
         print(self.body)
         
     def search(self, v):
@@ -204,7 +204,7 @@ class treeSearch:
                 s.push(h.r)
         print(result)
             
-    def print(self, mode = 1):        
+    def show(self, mode = 1):        
         self.printSet[mode]()
                 
     def findNext(self, p):
@@ -317,9 +317,12 @@ if (len(template) == 0):
 else:
     for i in range(len(sample)):
         mySearch.insert(template[i])
-          
+
 print(template)
-mySearch.print()
+mySearch.printSet[0]();
+mySearch.printSet[1]();
+mySearch.printSet[2]();
+mySearch.printSet[3]();
 print("===============================")
     
 for t in range(27):
@@ -335,12 +338,12 @@ if (len(remove) != 0):
         t = remove[i]
         mySearch.delete(t)
         print("remove {0} then ".format(t))
-        mySearch.print()
+        mySearch.show()
 else:    
     for i in range(len(template)-1,-1,-1):
         index = random.randint(0, i)
         t = template[index]
         mySearch.delete(t)
         print("remove {0} then ".format(t))
-        mySearch.print()    
+        mySearch.show()    
         template.pop(index)
