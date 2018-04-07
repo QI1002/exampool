@@ -1,4 +1,9 @@
 
+// incomplete
+// 1. Exhausive search in graphs (TODO:backtracking, branch and bound)
+// 2. digression: permutation generation 
+// 3. approximation algorithm (TODO: simple euclidean travelling salesman tour)
+
 #include <iostream>
 #include <vector>
 #include <time.h>

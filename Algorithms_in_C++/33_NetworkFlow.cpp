@@ -1,5 +1,8 @@
 
-//Chapter 33. Ford-Fulkerson method
+//incomplete
+//1. Ford-Fulkerson method
+//2. network searching (TODO: test in larger network) 
+//3. bipartile graph (item in chapter 34) 
 
 #include <iostream>
 #include <vector>

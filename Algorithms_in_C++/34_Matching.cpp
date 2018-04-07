@@ -1,4 +1,8 @@
 
+//complete
+//1. bipartile graph (written in chapter 33) 
+//2. stable marriage problem
+
 #include <iostream>
 #include <vector> 
 #include <deque>

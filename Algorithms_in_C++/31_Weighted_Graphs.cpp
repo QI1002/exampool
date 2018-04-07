@@ -1,5 +1,10 @@
 
-
+//incomplete
+//1.minimum spinning tree by priority search
+//2.mininum spinning tree by kruskal's method
+//3.shortest path by priority search (TODO: for dense graph cases)
+//4.Euclidean mininum spinning tree (TODO)
+ 
 #include <iostream>
 #include <vector>
 #include <map>

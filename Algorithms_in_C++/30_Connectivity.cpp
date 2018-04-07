@@ -1,4 +1,10 @@
 
+//complete
+//0. Depth first search (item in chapter29)
+//1. breadth first search (item in chapter29)
+//2. connected components
+//3. biconnectivity & articulation point 
+//4. union find algorithm
 
 #include <iostream>
 #include <vector>

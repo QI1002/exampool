@@ -1,6 +1,7 @@
 
-// 1. use the 2 ways to get the intersection for horizontal/vertical lines
-// 2. get the overlay part of 1d line
+//complete
+//1. Horizontal and vertical lines for two directions
+//2. The intersection of 1s lines
 
 
 #include <iostream>

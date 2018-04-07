@@ -1,12 +1,14 @@
 
+//complete
+//1. texture closure 
+//2. all shortest paths 
+//3. topological sorting  
+//4. strongly connected components
+
 #include <iostream>
 #include <vector>
 #include <deque>
 #include <set>
-
-// transitive Closure
-//
-//
 
 using namespace std;
 #define ELEMOF(x) (sizeof(x)/sizeof(x[0]))

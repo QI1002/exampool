@@ -1,4 +1,9 @@
 
+// incomplete
+// 1. knapsack problem (TODO: limited number of stuffs)
+// 2. matrix chain problem 
+// 3. optimal binary search trees
+
 #include <iostream>
 #include <vector>
 

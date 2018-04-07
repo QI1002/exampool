@@ -1,4 +1,9 @@
 
+//incomplete
+//1. closest point problems
+//2. Voronoi diagram (TODO)
+//3. Delaunay triangulation (TODO)
+
 #include <iostream>
 #include <vector>
 #include <algorithm>
