@@ -1,4 +1,8 @@
 
+//complete 
+//1. regular expression
+//string => expression => state mechine => evaluation 
+ 
 #include <iostream>
 #include <set>
 #include <vector>

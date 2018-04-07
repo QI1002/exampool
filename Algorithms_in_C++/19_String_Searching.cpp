@@ -1,4 +1,5 @@
 
+//complete
 // 1. kurt-morris-pratt algorithm by reuse the match part and increase i
 // 2. boyer-moore algorithm by comparing the tail string first and increase i 
 // 3. Rabin-Karp algorithm by hash value from polymid and prime

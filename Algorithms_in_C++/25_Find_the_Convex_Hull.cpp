@@ -1,4 +1,10 @@
 
+//incomplete
+//0. CCW, line intersection, theta and polygon inside check
+//1. package wrapping 
+//2. the graham scan 
+//3. interior estimation (TODO) 
+
 #include <iostream>
 #include <vector>
 #include <algorithm>
