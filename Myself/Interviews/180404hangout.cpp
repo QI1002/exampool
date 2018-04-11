@@ -35,34 +35,53 @@ void scoreWithPuzzle(string &p, string &g, string &a)
 int game(string &puzzle, string &result)
 {
     const int count = 26;
+    set<int> index;
     int calls = 0;
     string guess;
     result = "";
-    int match;
-    for(int i = 0; i < puzzle.size(); i++) result += "-";
+    for(int i = 0; i < puzzle.size(); i++) { result += "-"; index.insert(i); }
     
     do
     { 
         guess = result;
-        for(int i = 0; i < puzzle.size(); i++)
+        for(auto it = index.begin(); it != index.end(); it++) 
         {
-	    if (result[i] != '-') continue; 
             if (calls >= count) 
             { cout << "can’t guess this puzzle" << endl; return -1; }
-            guess[i] = (char)('a'+ calls);  
+            guess[*it] = (char)('a'+ calls);  
         }
 
-        scoreWithPuzzle(puzzle, guess, result); calls++;
-        match = 0;
-        for(int i = 0; i < puzzle.size(); i++) 
-            if (result[i] != '-') match++;
+        //cout << guess << endl;
+	scoreWithPuzzle(puzzle, guess, result); calls++;
+        for(auto it = index.begin(); it != index.end(); ) 
+	{
+	    auto it2 = it; it++;	
+            if (result[*it2] != '-') index.erase(it2);
+	}
 
+	int match = puzzle.size() - index.size();
 	cout << calls << "(" << match << "):" << result << endl;
-    }while(match != puzzle.size());
+    }while(0 != index.size());
 
     return true;
 }
 
+void getAvgTimes(int n)
+{
+    const int count = 26;
+
+    long long ll = 0;
+    long long oldpow = 0;
+    long long newpow;
+    for(int i = 1; i <= count; i++)
+    {
+	newpow = pow(i, n);    
+        ll += i * (newpow-oldpow);
+	oldpow = newpow;
+    }
+
+    cout << ll << "//" << newpow << "=" << (double)ll/(double)newpow;
+}
 
 int main(int argc, char* argv[])
 {
@@ -83,6 +102,7 @@ int main(int argc, char* argv[])
         cout << "can’t guess " << puzzle << endl;
     }
 
+    getAvgTimes(puzzle.size());
     return 0;
 }
     
