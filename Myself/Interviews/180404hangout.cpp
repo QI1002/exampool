@@ -24,15 +24,12 @@ void scoreWithPuzzle(string &p, string &g, string &a)
     a = "";
     int i;
     for(i = 0; i < p.size() && i < g.size(); i++)
-    { 
-        if (p[i] == g[i]) a += p[i];
-        else a += '-'; 
-    }
+        a += ((p[i] == g[i]) ? p[i] : '-');
 
     for(; i < p.size(); i++) a += '-';
 }
 
-int game(string &puzzle, string &result)
+bool game(string &puzzle, string &result)
 {
     const int count = 26;
     set<int> index;
@@ -44,10 +41,9 @@ int game(string &puzzle, string &result)
     do
     { 
         guess = result;
+        if (calls >= count) { cout << "can’t guess this puzzle" << endl; return false; }
         for(auto it = index.begin(); it != index.end(); it++) 
         {
-            if (calls >= count) 
-            { cout << "can’t guess this puzzle" << endl; return -1; }
             guess[*it] = (char)('a'+ calls);  
         }
 
@@ -92,8 +88,8 @@ int main(int argc, char* argv[])
     for(int i = 0; i < n; i++) puzzle[i] = (char)('a'+(rand()%count)); 
 
     string result;
-    int r = game(puzzle, result);
-    if (r > 0) 
+    bool r = game(puzzle, result);
+    if (r) 
     {
         if (result == puzzle) cout << "guess " << puzzle << " right" << endl;
         else cout << "guess " << puzzle << " wrong" << endl;
