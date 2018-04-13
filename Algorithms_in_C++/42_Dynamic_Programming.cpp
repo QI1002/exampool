@@ -1,6 +1,6 @@
 
 // incomplete
-// 1. knapsack problem (TODO: limited number of stuffs)
+// 1. knapsack problem (check single or not)
 // 2. matrix chain problem 
 // 3. optimal binary search trees
 
@@ -10,25 +10,27 @@
 using namespace std;
 #define ELEMOF(x) (sizeof(x)/sizeof(x[0]))
 
-int knapsack(int stuff[][2], int num, int cap, vector<int> &result)
+int knapsack(int stuff[][2], int num, int cap, vector<int> &result, bool single = false)
 {
     int best_values = 0; 
     int best_i;
     vector<int> values(cap+1, 0);
-    vector<int> best(cap+1, -1); 
-    
+    vector<int> best(cap, -1); 
+    vector<int> mask(cap+1, 0);
+
     for(int i = 0; i <= cap; i++)
     {
 	for(int j = 0; j < num; j++)
 	{
             if (stuff[j][0] > i) continue;
 	    int t = values[i-stuff[j][0]]+stuff[j][1];
-	    if (values[i] < t) {  best[i] = j; values[i] = t; }
+	    bool more = (!single || (mask[i-stuff[j][0]] & (1<<j)) == 0);
+	    if (values[i] < t && more) 
+	    {  best[i] = j; values[i] = t; mask[i] = mask[i-stuff[j][0]]|(1<<j); }
 	}
 
-        cout << i << ":" << values[i] << ":" << best[i] << endl;
-	if (best_values < values[i]) 
-	{  best_values = values[i]; best_i = i; }
+        //cout << i << ":" << values[i] << ":" << best[i] << ":" << mask[i] << endl;
+	if (best_values < values[i]) {  best_values = values[i]; best_i = i; }
     }
 
     //cout << best_values << " with " << best_i << endl;
@@ -126,7 +128,7 @@ int minSearchTree(int tree[][2], int num, vector<int> &result)
 		}
 	    }
 
-            cout << a << "," << b << ":" << m[a][b] << endl;
+            //cout << a << "," << b << ":" << m[a][b] << endl;
 	}
     }
 
@@ -140,7 +142,7 @@ int minSearchTree(int tree[][2], int num, vector<int> &result)
 	int k = result[j];
 	a = range[j].first; 
 	b = range[j].second;
-	cout << a << "," << b << ":" << k << endl;
+	//cout << a << "," << b << ":" << k << endl;
 	if (a < (k-1)) { result.emplace_back(mi[a][k-1]); range.emplace_back(pair<int,int>(a, k-1)); }
 	if ((k+1) < b) { result.emplace_back(mi[k+1][b]); range.emplace_back(pair<int,int>(k+1, b)); }
 	j++;
@@ -148,11 +150,12 @@ int minSearchTree(int tree[][2], int num, vector<int> &result)
     
     return m[0][num-1];
 }
+
 int main(int argc, char* argv[])
 {
     int stuff[][2] = { {3,4}, {4,5}, {7,10}, {8,11}, {9, 13}};
+    
     vector<int> result;
-
     int values = knapsack(stuff, ELEMOF(stuff), 17, result);
     cout << "The max values are " << values << ":";
     for(int i = 0; i< result.size(); i++) 
@@ -162,6 +165,16 @@ int main(int argc, char* argv[])
     }
     cout << endl;
 
+    vector<int> result_;
+    int values_ = knapsack(stuff, ELEMOF(stuff), 17, result_, true);
+    cout << "The max values (single) are " << values_ << ":";
+    for(int i = 0; i< result_.size(); i++) 
+    {
+	int j = result_[i];    
+	cout << j << " with (" << stuff[j][0] << "," << stuff[j][1] << ") ,";
+    }
+    cout << endl;
+    
     int matrix[][2] = { {4,2}, {2,3}, {3,1}, {1,2}, {2,2}, {2,3} };
     vector<int> result2;
     int mtimes = minMatrixMutiple(matrix, ELEMOF(matrix), result2);
