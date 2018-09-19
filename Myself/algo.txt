@@ -9,7 +9,7 @@
   > full binary tree or balanced binary tree (the depth of leaf nodes are x or x+1)
   > complete binary tree (the depth of leaf nodes are x)
   > traversal order: preorder:(p,l,r), inorder:(l,p,r), postorder:(l,r,p) (inorder name from math expr, ex: 2+3)
-                    and level-order traversal 
+                    and level-order traversal (BFS)
     - easy to implement preorder by stack and level-order by queue  
   > recursive => remove it 
                  1. one call one : change to use loop replace it
@@ -27,79 +27,436 @@
 TODO: 
 [1]. check the tree traverse implementation of inorder and postorder
 
-[Sort algorithms Chapter 8-13]
-
-		   BestO AvgO  WorseO Memory Stable Compare Swap    Note  	                 
-Selection Sort     N^2	 N^2   N^2    1      No     N^2/2   N       better for large data but small key 
-Insertion Sort     N	 N^2   N^2    1      Yes    N^2/4   N^2/8   linear for a sorted data and assignment = 1/2 swap => N^2/8
+==========================================================================================
+[Sort - Chapter 29 Elementary Sorting Algorithms]
+// N = items size, k = key size, d = digit size, r = key range size
+ 		         BestO  AvgO WorseO Memory Stable  Compare Swap    Note  	                 
+Selection Sort     N^2   N^2   N^2    1      No     N^2/2   N       better for large data but small key 
+Insertion Sort     N	 N^2   N^2    1      Yes    N^2/4   N^2/8   linear for a sorted data and compare = 1/2 swap 
+                                                                    due to no obvious swap, its good to implement indirect sort
 Bubble Sort        N     N^2   N^2    1      Yes    N^2/2   N^2/2   linear for a sorted data but more swaps
+Shell Sort         N     N^1.3 N^2    1      No     N^(3/2)         use insertion sort hierarchically (steps = 3N+1 and /3)
 
-Quick Sort         NlogN NlogN N^2    logN   No     2NlogN  N/3logN 
+Quick Sort         NlogN NlogN N^2    1      No   1.38NlogN N/3logN Compare = 2NlnN ~= 1.38NlgN
 Heap Sort                NlogN NlogN  1      No     2NlogN          no extra space is needed so O(1)
 Merge Sort         NlogN NlogN NlogN  N      Yes    NlogN           insensible to initial data
 
-Shell Sort         NlogN -     -      -      No     N^(3/2)         use insertion sort hierarchically (steps = /3)
+Bucket sort              n+r   n+r    n+r    Yes                    distribution counting, better to many items with same keys
 MSB Radix Sort     -     n*k/d n*k/d  n+2^d  Yes                    recursive (k = key bits, d = division bits) 
 LSB Radix Sort     -     n*k/d n*k/d  n+2^d  Yes                    no recursive and reply on stable character
 External Sort                                                       multiple way merge sort
 
+[Sort - Chapter 9 QuickSort]
+   - typical divide and conquer problem 
+     1. about 2NlogN comparisons on the average
+	 2. the worst case occurs if the array is sorted
+   - modification 
+     1. removing recursion - by stack & loop, do large part by stack and small part by loop 
+	    - not let the worse case to let stack size overflow (always ~= logN)  
+	 2. small subfiles - use other sort way like insertion sorting 
+	    - not paritioning and save the average time to 20% and let stack size smaller
+	 3. median of 3 paritioning - sort the middle/left/right item first and use middle to do quicksort
+	    - remove the sential in A[0]
+		- avoid the worse case for quick sort
+        - reduce the average time to 5%
+   - quick selection
+      1. find the median or k-th smallest items 
+        - if k is smaller, TC = O(kN) if using selection sorting
+        - if k is a little large, TC = O(Nlogk) if using priority queue
+        - if using quick selectio, TC = O(N) and its easy to reduce its recursion		
+	    - the quick selection can be used to binary cases (0, 1) and is used in MSB radix sort, 
+		
+[Sort - Chapter 10 Radix Sorting]
+   - how to extract the bits easy ?
+     1. remove a bit soon (LSB => MSB) or (MSB =>LSB)
+	 2. test a or a range of bit soon ? 
+   - MSB radix sort (radix exchange sort)
+     1. recursive and use the skill like in quicksort
+     2. benifit is to distinguish the keys if bit is different 	 
+     3. worst case in 
+	    A. the key range is limited and distributive in a large range (too many zeros in the begining)	 
+        B. the array with many equal keys
+     4. it will check NlogN bits in radix exchange sort
+	 5. distribution counting can be used for MSB radix sort also 	 
+   - LSB radix sort (straight radix sort)
+     1. non-recursive and use stable distribution couting flow to do that 
+     2. benifit is that the multiple d digits to do this sorting flow also 
+     3. straight radix sorting + distribution couting +insertion sort can make a sort almost linear 
+        but the major disadvantage of it is to need extra memory linear to 2^d
+     4. the worst case depends on the key range and extra memory 		
+   
+[Sort - Chapter 11 Priority Queue]
+   - heap 
+     1. you can use unordered list or ordered list to implement priority queue but not so efficiently
+	 2. heap is a complete binary tree and the key in each node shall be larger than/equal to their children
+     3. all operations can be done by fewer than 2logN comparisons except join (it's a special way to do that)
+	 4. sometimes, indirect heap is easy to use in some cases 
+   = heap sorting 
+     1. up to bottom ways : insert than remove (i.e. upheap than downheap)
+     2. bottom to up ways : downheap per internal node from the bottom and than remove (downheap)
+	 3. get the largest item and put it in the end of array one by one by downheap
+	 4. bottom-up heap construct is O(N) but up-bottom is O(NlogN)
+	 5. heap sort needs 2NlogN comparisons due to the final downheap need 2 comparison per times
+	 6. it's always slow than quicksort twice due to comparison count is 2NlogN
+	 
+
+[Sort - Chapter 11 Merge Sort]
+   - merge sort
+     1. the advantage is worst case TC = O(NlogN) but the disadvantage is SC = O(N)
+	 2. it's easy to implement with sequential access (ex: use linked list to do merge sort without extra memory)
+     3. it's stable sort and may need to have sential in the end of sorted subfiles
+     4. the sential can be removed to let array is a and b , a is increasing but b is decreasing (back to back)
+	 5. it's easy to implement it as recursion way
+   - bottom up merge sort (non-recursive version of merge sort)
+   - sential removement	 
+     1. merge sort need to have sential in the end of sorted subfiles
+     2. the sential can be removed to let array is a and b , a is increasing but b is decreasing (back to back)
+     3. non-recursive version need 2 code version to merge code increasingly and decreasingly
+	 4. recursive version need 4 version for merge sort (confirm?)
+   - mergesort can be quicker than quicksort (NlogN comparisons with 1.38 NlogN) without sential    
+	 
+[Sort - Chapter 13 External Sorting]
+   - the difference of external algorithm
+     1. the cost of accessing order is high 
+	 2. there are severe restrictions on access, ex: tape only can access sequentially
+	 3. system are a aspect about the algorithm aspect 
+   - balanced multiway merging
+     1. if P way, there are P inputs and P outputs. 
+	 2. the pass will be logP(N/M), N = data size and M = memory/block size
+   - replacement selection
+     1. use heap to select the smallest one ( P way needs logP steps )
+     2. heap selection until we cannot if cross the sorting block. it's the first step to have sorted blocks. 
+     3. the average sort run will be 2M if internal memory = M so the pass will be 1+logP(N/2M)
+        use heap with size M for initial sorted block and then use heap with P for P-way merge
+   - polyphase merging 
+     1. the merge-until-empty policy and it's hard to determine the first merge size 
+     2. remain one empty slot for output and merge until one input slot empty and use it as the output slot in next.
+     3. for P > 8, balanced multiway merge is better otherwise polyphase merging is better
+   - double buffer skills 
+     1. advantage to let calculation run with data fill, disadvantage is to not use all internal memory 
+     2. forcasting tips => fill buffer until the data block is not used any more 
+     3. it's better to have only 2 merge pass, so get the smallest P under P*P > N/2M 	 
+   - how to use vritual memory to speed up
+     1. storage hierarchy -> cache
+     2. quick sort is proper to used in the system with virtual memory than radix sorting 
+	 
+   
+[Sort algorithms Chapter 8-13]
+ 
 TODO: 
 1. why selection is not stable, why stable need O(n) extra space ?
    the swap make instable and we can use insert to replace swap and then stable
 {2}. review the quicksort and heapsort algorithm 
+3. how to extract the bits easy ? test a or a range of bit soon ?
+4. recursive version need 4 version for merge sort ?
 
+==========================================================================================
+[Searching - Chapter 14 Elementary Searching Methods]
+   - seaarching the records with the duplicated keys 
+     A. all records with a given search key 
+	 B. any record with a given search key
+	 C. search records with the unique identifier
+     D. seach to call a specified function for each record with the given key 	 
+   - Sequential Searching
+     A. N+1 comparsions for unsuccessful search with sential, N/2 comparisons for successful search with unordered list
+        - the constant insert in unordered list is optimal 
+        - each time,  a record is accessed then move it in the beginning of the list (self-organizing search)		
+	 B. N/2 comparisons for unsuccessful and successful search with sorted list
+   - Binary Searching
+     A. logN+1 comparisons for unsuccessful and successful search
+	    - the cost to insert new records is high (N/2 records will move for a random insert)
+	 B. interpolation search  	
+        - x = l + (r-l)/2 in binary search but x = l + (v-l.key)*(r-l)/(r.key-l.key)
+        - loglogN+1 comparisons for unsuccessful and successful search
+		- it's no big impact in interpolation search if access cost is low but it's worthy if cost is high
+   - Binary Tree Search
+     A. internal node with key value and external node for the new result after insert
+     B. pay particular attention to the position of equal in this tree
+     C. its easy to get sorted list from binary search tree by it's inorder traversal
+     D. about 2logN comparisons are needed for insert or search in the binary tree (due to it may degererated)
+     E. the worst case of binary search tree is N
+     F. delete a node in a binary search tree is a little complicated but select how to let tree balanced after delete 
+     G. a lazy deletion to mark a deleted node. The action is easy but waste the space. 	 
+   - indirect binary search trees
+     A. put the key and index in the node to get the real record in array  
+	 B. use direct array to implement but not linked node, but we need to keep unused item 	 
+     C. use parallel arrays to keep the key, left links and right links. it's advantage is flexibility.  	 
 
-[Graph Chapter 29]
+[Searching - Chapter 15 Balanced Trees]
+   - balancing tree is a general technique to avoid the search worst case occuring
+   - Top down 2-3-4 Trees (2/3/4 nodes with 1/2/3 keys and 2/3/4 links)
+     A. let the nodes with 3 keys to two nodes with 1 keys and pass middle of keys to it's parent 
+	 B. avoid repeat split so we split any nodes with 3 keys when we search the tree
+	 C. N node of 2-3-4 trees never visit more than logN+1 nodes 
+     D. Inertion in N node of 2-3-4 trees has less than logN+1 splits in worst case but less than 1 split on the average
+     E. it will be slow than binary search tree although 2-3-4 trees are balanced but has complicated structures/functions  	 
+   - Red-Black Tree 
+     A. the nodes with 2,3 keys to be the red link and original link is black link
+     B. never two adjacent red link in any path from root to external node
+     C. the number of black tree is almost the same per path (tree is balanced) but may twice after consider red link
+     D. the insert is compicated and related to 3 functions (insert/split/rotate)
+     E. we record gg, g, p for the grandgrand parent/ grand parent/ parent of insert node x and b = 1 if red link to x
+     F. Search in N node of rb trees has less than logN comparison and insert need less than 1 rotatation on the average
+     G. Search in N node of rb trees has less than 2logN+2 comparison and insert need less than 1/4 comparisons of rotate in worst case
+   - AVL tree ( the heights of two subtrees of each node diff by at most one)
+   - 2-3 tree, bottom-up 2-3-4 tree and B-tree are the alternative of balanced tree
+   
+[Searching - Chapter 16 Hashing]
+   - basic hash flow (consider hash function and and collison-resolution)  
+     A. time-space tradeoff (if no memory limit, use address for hash. if no time limit, use sequential search)
+     B. why the mod of prime number for hash ? use base(b) for longer key(ex: b=32, c1*b^2+c2*b+c3), so it will be prime with b 
+     C. Horner's method to let longer key to get mod result without overflow (a op b mod P = a mod P op b mode P, op= *,+)
+   - Seperate Chaining (colliding record are chained in a linked list)
+     A. the comparisons are N/M on the average (N: #data, M: #memory) and need extra space M 
+	 B. M is selected for let chain shorter or use "hyrid" way to use binary tree for key to reduce chain search 
+	 C. M is suggested to be 1/10 of N 
+   - Lienar probing 
+     A. often using it if M > N and it's called as "open addressing hashing methods"
+	 B. if there is collison, probe the next position in the table 
+	 C. the space usage is less than seperate chaining due to no link in this method although M > N
+	 D. a = N/M and 1/2+1/(2*(1-a)*(1-a)) for unsuccessful search and 1/2+1/(2*(1-a)). so if a = 2/3, ans = 5 and 2  
+   - Double Hashing 
+     A. change to use (x+1) % M -> (x+u) % M, u <> 0, u, M shall be relatively prime and diff with the first hash function
+     B. a = N/M and 1/(1-a) for unsuccessful search and -ln(1-a)/a. so if a = 2/3, ans = 3 and ln(3)*3/2  	 
+   - open addressing hashing is bad for dynamic method (ex: insert/delete) and degrade performance when almost full 
+     but both of them are ok for seperate chaining 
+   - seperate chaining is better to use if you don't know N, otherwise double hashing is better if you know N-1
+   - ordered hashing like linear linearing except search is stop if you find a key great or equal than yours
+   - the algorithm by R.P. Brent can let the average time of successful search is constant (i.e. O(1))
+   - hashing is simple and fast if memory is enough but binary search tree can support dynamic method, 
+     guaranteed worst cases and support wider range of operations like sort
+     
+[Searching - Chapter 17 Radix Searching]
+   - digital search tree 
+     A. height always less than max bits (i.e. maxb) and hard to insert if the diff bit is in LSB) 
+     B. the wrost case trees built with digital search tree is much better than binary search tree
+     C. the N node digital search tree is about logN comparisons on the average but maxb in the worst case 
+   - radix search tries
+     A. not compare a long key always and compare it by some bits to reduce calculation time    
+     B. put the keys in the external node and trie because it is useful for retrieval 	 
+	 C. if insert a node, you need to move a internal node to external node also so two external nodes are added.
+	 D. the N node radix search tries is about logN comparisons on the average but maxb in the worst case
+	 E. the radix search tree with N maxb-bits will have less than about N/ln2 ~= 1.44N nodes on the average
+	 F. the improvement has two 1. more than 2 links per node 2. collapse path containing one way branches to single link
+   - Muliple radix searching 
+     A. the M is larger, the waste of external links are more 
+	 B. M = 2^m (mbits), so links is about M*N/lnN on the average
+     C. hybrid tree -> the larger M in the top of tree but smaller Min the bottom of tree
+   - Patricia (Pascal Algorithm to retrieve information code in alphanumeric)
+     A. one-way branching is avoided by each node contains the index of the bit to be tested
+	 B. the key value is put in internal node and up link by the bottom nodes, 
+	    N internal nodes has N+1 external nodes in binary tree always so one of external node has no up link  
+	 C. the N node patricia tree is about logN comparisons on the average
+[Searching - Chapter 18 External Searching]
 
-1. The terms about graph 
+TODO: 
+1. fidn the interpolation search implementation 
+2. the detail of parallel arrays 
+
+	 
+==========================================================================================
+[Graph - Chapter 29 Elementary Graph Algorithms]
+> The terms about graph 
    - vertices, edges, connected
    - path, simple path (no vertices repeat) and cycle 
    - a graph without cycles -> tree, forest (connected components) and spinning tree (subtree as tree)
-   - a tree with V vertices has exactly V-1 edges
-   - complete, dense and sparse graphs
+   - a tree with V vertices has exactly V-1 edges otherwise there is a cycle
+   - complete, dense and sparse graphs ( E = V(V-1)/2, > VlogV, < VlogV )
+   - some complexity is better to dense, but other is better to spare (ex: V*V or (E+V)logE)
    - directed/undirected graph, weighted graph
-   - space complexity : matrix O(V^2) but adjacency list O(V+E) 
-   - depth first search (visit far to start as more as possible) - by stack
-   - breadth first search (visit closed to start as more as possible) - by queue  
+   - space complexity : adjacency matrix O(V^2)(better to dense) 
+     but adjacency list O(V+E)(better to spare, V is head for edge list), 
+	 the order of edge list is important 
+   - depth first search (visit most recent nodes first) - by stack or a recursive way, TC = O(V+E) or O(V*V)
+     even you visit a tree, you need to mark node = seen ? also due to V[i][j] = V[j][i] = 1, otherwise
+     it's a directed graph and you can check a cycle or not easier if visit a seen node (directed graph must)	 
+	 mark the "seen" before put the unseen node to stack always, but not mark it when stack pop up
+   - breadth first search (visit least recent nodes first) - by queue, no recursive way   
+   - priority first search (vist high priority first) - by priority queue, no recursive way
+   - maze stroll is better to use DFS, always put your right hand on the wall
+   - Hard questions - 1. planairty problem 2. traveling salesman problem 3. graph isomorphism problem
+
+[Graph - Chapter 30 Connectivity]
+   - find the connected component by graph search algo (DFS/BFS) and can know search order
    - biconnected : all paris of veritices has the two path to connect each other in a graph
-   - articulation point (find by DFS way)
-   
-2. union problem 
+   - articulation point: if its deleted, the graph is broken to some pieces. if no this points,
+     the graph shall be biconnected.
+	 DFS to find the spinning tree, and yes if the node whose descendants has no link to it's ancestor.
+	 The root is articulation point if it has two/more children. The visted node is always older of current node.
+	 TC is like DFS and it's O(V+E) or O(v*V) and return the older node per node who can touch by new DFS flow
+   - union find/equivalence classes problem
+     {book way}
+     init => let default parent to be zero (an anchor and all nodes are from 1)
+     union => concat the parent by the rule that the one with more descendants (balanced tree) 
+	          + path compression (let parent as the negative number of descendants)
+	 find => find if they have the same parent 
+     {my way}
+     init => let default parent of all nodes are self
+     union => concat the parent by the rule that the smaller one is parent 
+	 find => find if they have the same parent 
+	 the build all of TC is almost linear to E including init/union/find       
+> union problem (not know where the TC is from) 
    - use one array => add ~= O(N^2) but find ~= O(1)  
    - use one array + more set => add ~= O(N) but find ~= O(1)
    - use one array but link list => add ~= O(1) but find ~= O(N^2)
 
-3. Famous weighted graph problems 
+[Graph - Chapter 31 Weighted Graphs]
+> Famous weighted graph problems
+   - consider weight are all positive. if not, we shall use complicated algorithms to solve it.
    - min spinning tree 
-     1. priority tree search : search from one vertice and use smallest edge to visit the next node   O((E+V)logV)
-     2. kruskal's method : put from smallest edge first to largest, if there is cycle, skip the edge  O(ElogE)
+     1. priority tree search : search from one vertice and use smallest edge to visit the next node   
+	    TC = O((E+V)logV) due to a new edge have a new heap push and a new vertex make a new heap pop
+     2. kruskal's method : put from smallest edge first to largest, if there is cycle, skip the edge  
+	    TC = O(ElogE) due to sort edge first, cycle find check is linear to O(E), the worst case of it is that 
+		all edges are checked if not a connected graph or longest edge is neccessary for connection
+	 3. if the graph is dense, you can use Prim's algorithm about O(V*V) or O((E+V)logV) like PFS 	
    - min shortest path 
-     1. if every weight is the same, use BFS to find 
+     1. if every weight is the same, use BFS to find
      2. if every weight is not the same, use priority tree search O((E+V)logV)
+	 3. if the graph is dense, you can use Dijkstra algorithm about O(V*V) or O((E+V)logV) like PFS
    - Geometic min spanning tree 
-     1. use Voronoi diagram -> take dual egde of it and tree will be it's subgraph O(NlogN)
+     1. use Voronoi diagram -> take dual egde of it and tree will be it's subgraph O(NlogN) => not feasible
+	 2. use the square with all veritices in square < log(N/2) and find the it by one of graph methods
+   - Geometic shortest path
+     1. not complete graph (I guess)
+     2. priority = the path distance from start to fringe and the direct distance from fringe to end 	 
 
-3. directed graph
+[Graph - Chapter 32 Directed Graphs]	 
+> terms of directed graph and it's famous problems
    - up edge : to ascendant, down edge: to descendant, cross edge : not ascendant or descendant 
    - tranasitive closure : if x can goto y, y can goto j, then x can goto j 
-     1. use DFS/BFS to find all nodes from start 
-     2. use Warshall's algorithm (spare graph: O(V(E+V)), dense O(V^3)
-   - use Flord's algorithm to short directed path in weighted directed graph 
-   - direct acyclic graph 
+     1. use DFS/BFS to find all reach nodes from all nodes: TC = O(V(V+E)) if sparse graph, TC = O(V^3) if dense graph 
+     2. use Warshall's algorithm: TC = O(V^3)
+   - use Flord's algorithm to find short directed path all reach nodes from all nodes in weighted directed graph  
+     1. TC = (E+V)logV * V) if spare graph , TC = O(V^3) if dense graph
+   - direct acyclic graph: directed graphs with no directed cycles
    - topological sorting ( task dependancy ) 
-     1. find the source node ( only output, no input ) 
-     2. use them to do DFS
-     3. if there is no up edge, you can find it's ropological order  
+     1. find the source node with only output edges, but no input edges 
+     2. use them to do DFS and print self if all reach nodes are visted 
+     3. repeat 1 (check the algo in Geek2Geek)
+	 4. if you reverse the edge direction, you can get the reverse topological sorting
    - strong connected components
      0. a set of vertices in the directed graph and any pairs in the set can access each other 
-     1. by O(N) but ingenerous flow based on DFS
-     2. to find the cycle in the directed graph 
-4. Network flow: skip 
-5. Matching 
- 
+     1. the flow based on DFS and linear to O(E+V) by Tarjan 
+     2. the way to find the oldest visited node, if the same as start, 
+	    all visited nodes belong to the same strong connected commponents (algo lik biconnected algo)
+
+[Graph - Chapter 33 Network Flow]
+   - operation search and decision making
+   - Ford/Fulkson algorithm - maxflow-mincut theorem 
+     1. forward edge ( source to sink ), backward edge ( sink to source )
+     2. if every path from the soruce to the sink in a network has a full forward edge 
+        or an emoty backward edge, then the flow is maximal
+   - Edmonds and karp algothm 
+     1. priority/queue is changed to get max 
+     2. shortest search path # < VE and per iteraton is O((E+V)logV) or O(V*V) 
+        and the iteration # is complicated by proof 	 
+   - mincut is a quite hard problem 
+   
+[Graph - Chapter 34 Network Flow]
+   - max matching problem or max weighting matching problem
+   - bipartite graphs: the veritices can be divided to two sets
+   - max matching problem or max weighting matching problem in bipartite graphs
+     1. both of them can be reduced to network flow problem    
+	 2. tc = O((V+E)logV* V) or O(V^3) due to seach# in P466 V/2 
+   - stable marriage problem (greedy seach)
+     1. the problem like greedy search , TC is linear to the number of man/woman 
+	 2. make sure no pair has reverse problem otherwise it's unstable 
+     3. find all stable assignments are a much harder problem 
+	 4. it may get the answer in the book example if exchange to let woman pick up man 
+	 5. the suitor order has no major relation to the final result  
+
+==========================================================================================
+[Math - Chapter 37 Guassian Elimination]
+   - a numeric methods to solve several equations
+     1. respresent several equations by matrix and some operations not change solution
+        A. interchange euations B. Raname variables C. Muliple equations by a const D. Add two equations
+   - all flow are divided to phases 
+	 1. forward elimination (i.e. triangulation) - make zero below diagonal (i.e partial pivoting)
+     2. backward substitution - solve all equations from bottom to topological
+   - pivot - a[i][i] is used to eliminate the non-zero elements below the diagonal in the ith column 
+     1. the a[i][i] can be zero otherwise try to find one. If not found, it's singlar matrix and has no unique solution
+     2. it's better to find the largest items in ith column to avoid overflow aftr pivoting
+     3. full pivoting - eliminate all in the ith column except ith row, partial pivoting only for items below diagonal
+   - TC of forward elimination is O(N^3/3) and backward substitution is O(N^2)
+     1. the complexity of pivoting is the same as two matrix multiplication
+   - Gauss-Jordon to estimation all items not in diagonal, 
+     it's not optimal due to forward elimation complexity is greater than backward substitution
+   - The precision of Guassian Elimination shall be paid attention (i.e. condition number)
+   - A tridiagnol system can be solved in linear time by Guassian Elimination
+   - If the matrix is not changed , we can get it's inverse matrix and get answer by TC = O(N^2)   
+
+==========================================================================================
+[Advanced - Chapter 42 Dynamic Programming]
+   - divide and conquer problem 
+     1. two obstacles to gather small questions to larger one 
+	    a. they have no way to conduct smaller ones to larger one
+		b. the number of smaller one is too large to accept 
+	 2. a kind of alternative of recursive way
+     3. divide-and-conquer recursion is the case in which a minimal amount of small information
+        exhaustive search is the case in which a maximal amount of small information 	 
+   - obvious examples
+     1. string replacement
+     2. 
+	 
+[Advanced - Chapter 43 Linear Programming]
+   - a linear programming and simplex method
+     1. object function: the answer we want, one of vertices in simplex will the answer 
+	 2. the simplex flow can't be used in non-linear object function, the answer may in the edge
+     3. the region to meet the inequatities are always convex and call it simplex
+     4. the unbound simplex may have no answer, some inequatities may cause infeasible/redundant answers
+   - The simplex method 
+     1. standard form: A. make all inequatities become equations by adding slack variable per equations
+     2. make all variables are non-negative by transfor the variables (x < -1 => let y = -1-x and y > 0)
+     3. make a matrix with N+1 rows & M+1 columns ( N equations with M variables, which has N slack variables )
+	    the first row is the object function and the last column is b if Ax = b
+	 4. why we let the value in row 0 are all negative due to we hope per pivoting can increase it's value	
+     5.	use the trick to find the pivot position and do pivoting until all values in row 0 is positive
+        A. find the column with smallest negative number in row 0 
+        B. find the row with the smallest positive value of b[r]/a[r][c], i.e. the largest positive a[r][c]
+		C. it's better to let b always positive when do pivoting repeatedly
+		D. find the way to avoid cycling to select the repeated pivot position 
+		E. if the values in row 0 may all negative once, the answer can't be found (confirmed ??)
+	 6. the TC of simplex method is hard to predict  
+
+[Advanced - Chapter 42 Exhaustive Search]
+   - a linear programming and simplex method
+
+[Advanced - Chapter 42 NP-Complete Problems]
+   - P and NP is deterministic and Non-deterministic polynomial time algorithms
+     - deterministic means at any time, whatever the algorithm is doing, there is only one thing that it could do next.
+	 - the score of P is the subset of the scope of NP
+	 - it's not proven NP = P or NP != NP 
+	 - NP complete problem - the efficient algorithms are not found yet 
+	 - if we can transform a problem to a NP complete problem by the polynomial time, it's polynomial reducibility 
+   - The famous NP-complete examples
+     1. satisfiability problem - first proven problem by Cook
+        all NP complete problem can run on turing machine and it can translate logical formula	 
+     2. traveling salesman
+     3. Hamiliton cycle
+     4. longest path in a graph	 
+   - the alternative solution for NP-complete problem
+     1. approximation algorithm that not the best solution but guaranteed to be close the best
+     2. average time performance - finds the solution in some cases but not work in all cases
+     3. work with efficient exponential algorithm - backtracking 
+     4. N ^ log(N) and 2 ^ (N^1/2): N ^log(N) = (N/2) (confirm?)
+	 
+        
+   
 TODO:
-[1]. check why kruskal's method is O(ElogE)
-[2]. what's prim algorithm ?
-[3]. what's Dijkstra's algorithm ?
-[4]. what's major spirit in Warshall's algorithm ? 
+[1]. implement the new flow for prim/Dijkstra method by c++ heap update
+[2]. can we implement topological sort by non-recursive way ? or two stack implementation ?
+[3]. find the implement with deque with index and depth check (add NULL..) in Leetcode
+[4]. Find Edmonds and karp algothm for netflow problem/max matching in internet 
+[5]. check where stable marriage problem is ?  
+[6]. The time complexity of get inverse matrix
+[7]. 
 [5]. how to find string connected commponents 
+
+
+[More]
+1. Leetcode Solution
+2. Geek2Geek
+3. pink webpage share 
+4. other internet sharing
+5. C++ lib study 
