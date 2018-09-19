@@ -18,7 +18,7 @@
                  4. use two stack (ex: tree postorder traversal)
 - complexity 
   > C(N) = C(N-1)+N => C(N) = N^2/2
-  > C(N) = C(N/2)+1 => C(N) = N
+  > C(N) = C(N/2)+1 => C(N) = N (shall be logN)
   > C(N) = C(N/2)+N => C(N) = 2N
   > C(N) = 2*C(N/2)+N => C(N) = NlogN
   > C(N) = 2*C(N/2)+1 => C(N) = 2N 
@@ -38,7 +38,7 @@ Bubble Sort        N     N^2   N^2    1      Yes    N^2/2   N^2/2   linear for a
 Shell Sort         N     N^1.3 N^2    1      No     N^(3/2)         use insertion sort hierarchically (steps = 3N+1 and /3)
 
 Quick Sort         NlogN NlogN N^2    1      No   1.38NlogN N/3logN Compare = 2NlnN ~= 1.38NlgN
-Heap Sort                NlogN NlogN  1      No     2NlogN          no extra space is needed so O(1)
+Heap Sort                NlogN NlogN  1      No     2NlogN          no extra space is needed so O(1) 
 Merge Sort         NlogN NlogN NlogN  N      Yes    NlogN           insensible to initial data
 
 Bucket sort              n+r   n+r    n+r    Yes                    distribution counting, better to many items with same keys
@@ -46,9 +46,11 @@ MSB Radix Sort     -     n*k/d n*k/d  n+2^d  Yes                    recursive (k
 LSB Radix Sort     -     n*k/d n*k/d  n+2^d  Yes                    no recursive and reply on stable character
 External Sort                                                       multiple way merge sort
 
+merge sort > quick sort > heap sort due to 1 v.s. 1.38 v.s. 2
+
 [Sort - Chapter 9 QuickSort]
    - typical divide and conquer problem 
-     1. about 2NlogN comparisons on the average
+     1. about 2NlnN ~= 1.38NlogN comparisons on the average
 	 2. the worst case occurs if the array is sorted
    - modification 
      1. removing recursion - by stack & loop, do large part by stack and small part by loop 
@@ -63,7 +65,7 @@ External Sort                                                       multiple way
       1. find the median or k-th smallest items 
         - if k is smaller, TC = O(kN) if using selection sorting
         - if k is a little large, TC = O(Nlogk) if using priority queue
-        - if using quick selectio, TC = O(N) and its easy to reduce its recursion		
+        - if using quick selection, TC = O(N) and its easy to reduce its recursion by loop	
 	    - the quick selection can be used to binary cases (0, 1) and is used in MSB radix sort, 
 		
 [Sort - Chapter 10 Radix Sorting]
@@ -71,19 +73,20 @@ External Sort                                                       multiple way
      1. remove a bit soon (LSB => MSB) or (MSB =>LSB)
 	 2. test a or a range of bit soon ? 
    - MSB radix sort (radix exchange sort)
-     1. recursive and use the skill like in quicksort
+     1. recursive and use the skill like in quicksort (it shall be not stable)
      2. benifit is to distinguish the keys if bit is different 	 
      3. worst case in 
 	    A. the key range is limited and distributive in a large range (too many zeros in the begining)	 
         B. the array with many equal keys
-     4. it will check NlogN bits in radix exchange sort
-	 5. distribution counting can be used for MSB radix sort also 	 
+     4. it will check NlogN bits in radix exchange sort (C(N) = 2*C(N/2)+N)
+	 5. distribution counting can be used for MSB radix sort also (it shall be stable) 	 
    - LSB radix sort (straight radix sort)
      1. non-recursive and use stable distribution couting flow to do that 
      2. benifit is that the multiple d digits to do this sorting flow also 
      3. straight radix sorting + distribution couting +insertion sort can make a sort almost linear 
         but the major disadvantage of it is to need extra memory linear to 2^d
      4. the worst case depends on the key range and extra memory 		
+   - both of them are depends on the value of key so it can be used as special purpose sort
    
 [Sort - Chapter 11 Priority Queue]
    - heap 
@@ -95,11 +98,11 @@ External Sort                                                       multiple way
      1. up to bottom ways : insert than remove (i.e. upheap than downheap)
      2. bottom to up ways : downheap per internal node from the bottom and than remove (downheap)
 	 3. get the largest item and put it in the end of array one by one by downheap
-	 4. bottom-up heap construct is O(N) but up-bottom is O(NlogN)
+	 4. bottom-up heap construct is O(N => N/4*1+N/8*2+..logN-1 ~ N-logN-1 ~ O(N) based on book) 
+	    but up-bottom is O(NlogN => sum of log1+..logN = NlogN-N by calculus)
 	 5. heap sort needs 2NlogN comparisons due to the final downheap need 2 comparison per times
-	 6. it's always slow than quicksort twice due to comparison count is 2NlogN
+	 6. it's always slow than quicksort twice due to comparison count is 2NlogN (compare 1.38NlogN)
 	 
-
 [Sort - Chapter 11 Merge Sort]
    - merge sort
      1. the advantage is worst case TC = O(NlogN) but the disadvantage is SC = O(N)
@@ -119,7 +122,7 @@ External Sort                                                       multiple way
    - the difference of external algorithm
      1. the cost of accessing order is high 
 	 2. there are severe restrictions on access, ex: tape only can access sequentially
-	 3. system are a aspect about the algorithm aspect 
+	 3. system are an aspect about the algorithm aspect 
    - balanced multiway merging
      1. if P way, there are P inputs and P outputs. 
 	 2. the pass will be logP(N/M), N = data size and M = memory/block size
@@ -138,13 +141,11 @@ External Sort                                                       multiple way
      3. it's better to have only 2 merge pass, so get the smallest P under P*P > N/2M 	 
    - how to use vritual memory to speed up
      1. storage hierarchy -> cache
-     2. quick sort is proper to used in the system with virtual memory than radix sorting 
+     2. quick sort is proper to used in the system with virtual memory than radix sorting because locality
 	 
    
-[Sort algorithms Chapter 8-13]
- 
 TODO: 
-1. why selection is not stable, why stable need O(n) extra space ?
+1. why selection become stable need O(n) extra space ?
    the swap make instable and we can use insert to replace swap and then stable
 {2}. review the quicksort and heapsort algorithm 
 3. how to extract the bits easy ? test a or a range of bit soon ?
@@ -173,10 +174,10 @@ TODO:
      A. internal node with key value and external node for the new result after insert
      B. pay particular attention to the position of equal in this tree
      C. its easy to get sorted list from binary search tree by it's inorder traversal
-     D. about 2logN comparisons are needed for insert or search in the binary tree (due to it may degererated)
+     D. about 2logN comparisons are needed for insert or search in the binary tree on the average
      E. the worst case of binary search tree is N
      F. delete a node in a binary search tree is a little complicated but select how to let tree balanced after delete 
-     G. a lazy deletion to mark a deleted node. The action is easy but waste the space. 	 
+     G. a lazy deletion to mark a deleted node. The action is easy but waste the space.	 
    - indirect binary search trees
      A. put the key and index in the node to get the real record in array  
 	 B. use direct array to implement but not linked node, but we need to keep unused item 	 
@@ -220,8 +221,8 @@ TODO:
      B. a = N/M and 1/(1-a) for unsuccessful search and -ln(1-a)/a. so if a = 2/3, ans = 3 and ln(3)*3/2  	 
    - open addressing hashing is bad for dynamic method (ex: insert/delete) and degrade performance when almost full 
      but both of them are ok for seperate chaining 
-   - seperate chaining is better to use if you don't know N, otherwise double hashing is better if you know N-1
-   - ordered hashing like linear linearing except search is stop if you find a key great or equal than yours
+   - seperate chaining is better to use if you don't know N, otherwise double hashing is better if you know Ns
+   - ordered hashing like linear probing except search is stop if you find a key great or equal than yours
    - the algorithm by R.P. Brent can let the average time of successful search is constant (i.e. O(1))
    - hashing is simple and fast if memory is enough but binary search tree can support dynamic method, 
      guaranteed worst cases and support wider range of operations like sort
@@ -239,21 +240,46 @@ TODO:
 	 E. the radix search tree with N maxb-bits will have less than about N/ln2 ~= 1.44N nodes on the average
 	 F. the improvement has two 1. more than 2 links per node 2. collapse path containing one way branches to single link
    - Muliple radix searching 
-     A. the M is larger, the waste of external links are more 
-	 B. M = 2^m (mbits), so links is about M*N/lnN on the average
+     A. the M is larger, the waste of external links are more (M is the max links per node)
+	 B. M = 2^m (mbits), so links is about M*N/lnM on the average
      C. hybrid tree -> the larger M in the top of tree but smaller Min the bottom of tree
    - Patricia (Pascal Algorithm to retrieve information code in alphanumeric)
      A. one-way branching is avoided by each node contains the index of the bit to be tested
 	 B. the key value is put in internal node and up link by the bottom nodes, 
 	    N internal nodes has N+1 external nodes in binary tree always so one of external node has no up link  
 	 C. the N node patricia tree is about logN comparisons on the average
+	 
 [Searching - Chapter 18 External Searching]
 
 TODO: 
 1. fidn the interpolation search implementation 
 2. the detail of parallel arrays 
 
+==========================================================================================
+[String - Chapter 19 String Searching]
+
+[String - Chapter 20 Pattern Matching]
+
+[String - Chapter 21 Parsing]
+
+[String - Chapter 22 File Compression]
+
+[String - Chapter 23 Cryptology]
 	 
+==========================================================================================
+[Geometic - Chapter 24 Elementary Geometric Methods]
+
+[Geometic - Chapter 25 Finding the Convex Hull]
+
+[Geometic - Chapter 26 Range Searching]
+
+[Geometic - Chapter 27 File Geometic Intersection]
+
+[Geometic - Chapter 28 Closet Point Problems]
+
+TODO:
+[1].
+
 ==========================================================================================
 [Graph - Chapter 29 Elementary Graph Algorithms]
 > The terms about graph 
@@ -278,7 +304,7 @@ TODO:
 
 [Graph - Chapter 30 Connectivity]
    - find the connected component by graph search algo (DFS/BFS) and can know search order
-   - biconnected : all paris of veritices has the two path to connect each other in a graph
+   - biconnected : all pairs of veritices has the two path to connect each other in a graph
    - articulation point: if its deleted, the graph is broken to some pieces. if no this points,
      the graph shall be biconnected.
 	 DFS to find the spinning tree, and yes if the node whose descendants has no link to it's ancestor.
@@ -316,7 +342,7 @@ TODO:
 	 3. if the graph is dense, you can use Dijkstra algorithm about O(V*V) or O((E+V)logV) like PFS
    - Geometic min spanning tree 
      1. use Voronoi diagram -> take dual egde of it and tree will be it's subgraph O(NlogN) => not feasible
-	 2. use the square with all veritices in square < log(N/2) and find the it by one of graph methods
+	 2. use the square size if the number of veritices in square < log(N/2) and find the it by one of graph methods
    - Geometic shortest path
      1. not complete graph (I guess)
      2. priority = the path distance from start to fringe and the direct distance from fringe to end 	 
@@ -353,7 +379,7 @@ TODO:
         and the iteration # is complicated by proof 	 
    - mincut is a quite hard problem 
    
-[Graph - Chapter 34 Network Flow]
+[Graph - Chapter 34 Matching]
    - max matching problem or max weighting matching problem
    - bipartite graphs: the veritices can be divided to two sets
    - max matching problem or max weighting matching problem in bipartite graphs
@@ -365,6 +391,15 @@ TODO:
      3. find all stable assignments are a much harder problem 
 	 4. it may get the answer in the book example if exchange to let woman pick up man 
 	 5. the suitor order has no major relation to the final result  
+
+TODO:
+[1]. implement the new flow for prim/Dijkstra method by c++ heap update
+[2]. can we implement topological sort by non-recursive way ? or two stack implementation ?
+[3]. find the implement with deque with index and depth check (add NULL..) in Leetcode
+[4]. Find Edmonds and karp algothm for netflow problem/max matching in internet 
+[5]. check where stable marriage problem is ?  
+[6]. The time complexity of get inverse matrix
+[7]. how to find string connected commponents 
 
 ==========================================================================================
 [Math - Chapter 37 Guassian Elimination]
@@ -440,19 +475,6 @@ TODO:
      2. average time performance - finds the solution in some cases but not work in all cases
      3. work with efficient exponential algorithm - backtracking 
      4. N ^ log(N) and 2 ^ (N^1/2): N ^log(N) = (N/2) (confirm?)
-	 
-        
-   
-TODO:
-[1]. implement the new flow for prim/Dijkstra method by c++ heap update
-[2]. can we implement topological sort by non-recursive way ? or two stack implementation ?
-[3]. find the implement with deque with index and depth check (add NULL..) in Leetcode
-[4]. Find Edmonds and karp algothm for netflow problem/max matching in internet 
-[5]. check where stable marriage problem is ?  
-[6]. The time complexity of get inverse matrix
-[7]. 
-[5]. how to find string connected commponents 
-
 
 [More]
 1. Leetcode Solution
@@ -460,3 +482,8 @@ TODO:
 3. pink webpage share 
 4. other internet sharing
 5. C++ lib study 
+
+https://github.com/donnemartin/system-design-primer
+https://course.tianmaying.com/american-dream-of-coders+system-design#0
+
+ALGO, programming, data structure and system design ...
