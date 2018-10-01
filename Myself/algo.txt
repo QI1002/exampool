@@ -17,7 +17,7 @@
                  3. use one stack (ex: tree preorder traversal)
                  4. use two stack (ex: tree postorder traversal)
 - complexity 
-  > C(N) = C(N-1)+N => C(N) = N^2/2
+  > C(N) = C(N-1)+N => C(N) = N^2/2M, M MNFN V N,,,,,,,,        
   > C(N) = C(N/2)+1 => C(N) = N (shall be logN)
   > C(N) = C(N/2)+N => C(N) = 2N
   > C(N) = 2*C(N/2)+N => C(N) = NlogN
@@ -268,15 +268,97 @@ TODO:
 	 
 ==========================================================================================
 [Geometic - Chapter 24 Elementary Geometric Methods]
-
+   - sential (P[N] = P[0] or P[N+1] = P[1]) 
+   - clockwise or counterclockwise (outer product)
+     A. use outer product to do that 
+	 B. the exception shall be noticed 1. 3 point is collinear 2. two points are the same 
+	    => if P0 between P1, P2: ans = -1, if P1 between P0, P2: ans = 1, if P2 between P0, P2: ans 0
+   - check if two line are intersect 
+     A. if CCW(L1P1,L1P2,L2P1)*CCW(L1P1,L1P2,L2P2) <= 0 && CCW(L2P1,L2P2,L1P1)*CCW(L2P1,L2P2,L1P2) <= 0   
+     B. the exception is if line intersection occcurs when one point of line in the other line
+   - simple closed path (not intersect each other in the path, by arctangent from one point of them) 
+   - arctangent 
+        t = dy/(abs(x)+abs(y)) but 0 if abs(x)+abs(y) == 0. if (dx < 0) t = 2-t; if (dy < 0) t = 4-t; 
+   - Inclusion in a polygon 
+     A. have a line from target to infinite remote, if the intersection points is odd, inside otherwise outside
+     B. the exception is if some points or edges of polygon is in the detect line, 
+	    we only count the line intersection if the start point of one edge is not in the detect line 
+   		
 [Geometic - Chapter 25 Finding the Convex Hull]
-
+   - convexity 
+     A. convex polygon: any line connecting any two points must lie entirely inside the polygon
+     B. convex hull: the smallest convex polygon contain all of points
+   	    - any line outside the polygon move to the hull will hit a point in convex hull
+		- so its obvious that the points with largest, smallest x and y are in convex hull
+   - package wrapping
+     A. start the point with the smallest y and find the next point with theta > previous theta (default from 0) 
+     B. the time complexity will be M*N (M: the real points in convex hull)
+     C. the order of these points are not important so we can swap the let the points of convex hull in the first M points	 
+	 D. it's a general solution no matter what the dimension is
+   - the graham scan
+     A. start the point with the smallest y and sort all points by the theta with start point, then use 3 
+	    points sliding window to make sure they are CCW (if ABC => BCD NG => backtrace to ABD)
+     B. the first ABC shall be CCW due to they are sorted by theta based on A with the smallest y
+     C. the time complexity will be NlogN+N	 
+   - interior estimation 
+     A. use the points with the largest and smallest of x+y and x-y to estimate the points in this rectangle 
+	 B. it's best to let the rectangles with the edge which are parallel to x, y axes
+	 C. on the average, it's time complexity will be linear O(N) but in the worst O(NlogN)
+	 
 [Geometic - Chapter 26 Range Searching]
-
+   - 1D range searching 
+     A. use recusive way to do point range searching like binary search tree 
+	 B. the time complexity is NlogN steps when construction and R+logN if find R points in the range by tree 
+	(If we sort all 1D points first and then find the range, the cost will be R + 2logN and it's just what the book says) 
+   - 2D range searching (sequential search)
+     A. it's easy to use batch ways to query more conditions like database in external device
+     B. we can use two 1D range searching to find x projection first then y  
+   - 2D range searching (grid search) 
+     A. using grid search to do range search efficiently, if M points requested in grid so grid size is (N/M)^0.5 per dim	 
+     B. the time complexity is about linear for O(R) if result R points on the average but O(N) on the worse case 
+     C. it's better to subdivide the grid by non-uniform way to avoid the pixels in a cluster case 
+   - 2D range searching trees 
+     A. let the binary search tree based on odd/even search order to x,y search order
+     B. all leaf node in the 2D tree represent a rectangle in the space 
+	 C. The time complexity is 2NlogN comparsions when constuction and R+logN if find Roints in the range by tree 
+   - multiple-D range searching 
+     A. if you use grid or tree to do range searching, pay attention to most grid/dimensions are empty 
+     B. not cycling the dimentions like 2D tree, divide the point in the best way to balance and record which dim you divide
+     C. A good understanding of the characteristics is often neccessary to develop an efficient method
+	 
 [Geometic - Chapter 27 File Geometic Intersection]
-
+   - Manhattan geometry (i.e. dx+dy but not (dx*dx+dy*dy)^1/2) 
+   - line intersection if line is horizontal and vertical 
+     A. put the y value for one value for horizontal lines and two values for veritical lines
+     B. traverse them from small to larger, if veritical start y, add it to set and erase it from set if end y. 
+	    If it's horizontal line, do search for the veritical line in set
+     C. so we need a Ytree like what we do in B and keep Xtree tree for all x value for vertical tree, 
+	    if find horizontal line two x values in xtree and the range will be veritical line intersection
+     D. the time complexity is NlogN+I, if I = # line intersection 
+	    If H+V = N , I think time complexity will be (2V+H)log(2V+H)+H*2logV
+   - General line intersection
+     A. the rule of P line is right to Q or Q line is left to P means there is a line X ( X = P or Q) and the two points 
+        of the other line is in the same side of X. 
+     B. if we can't find the rule A between two lines, we can find there is a intersection. and traverse like vertical/
+        horizontal line tree search 
+     C. after intersection, we shall update the two lines start point by intersection point and original line 
+	    by end point of intersection points 
+     D. the time complexity will be (N+I)logN (compare to old one ?)	 
+	 
 [Geometic - Chapter 28 Closet Point Problems]
-
+   - closet-point Problems 
+	 A. it's the typical example of combine and conquer method 
+	 B. sort x value first with O(NlogN) as vertice index and divide two left and right points. then get closed point pair 
+	    by get the t = min(closed points in left, closed point in right) and tt = closed points in 2*t line strip between 
+		left and right points , then answer is min(tt, t)
+	 C. so we need to sort y value with closed point divide-and-conquer and try to find the min 
+	 D. in the book, it's find the old y 4 values in 2*t strip line box but not skip the points in the same side ??
+	    it's better to find the points in the other side and (old y - current y) < min 
+   - voronoi diagram 
+     A. perpendicular bisectors
+     B. the dual of it is Delaunay triangulation - Eulicean spinning tree can base it 
+     C. it's implementation like closet point problems but it's more complicated 	 
+	 
 TODO:
 [1].
 
