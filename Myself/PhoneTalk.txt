@@ -1,0 +1,17 @@
+
+
+[1nd interview]
+1. what the average/worst TC of heap sort => both are O(nlogn)
+2. what the average TC of merge sort => O(nlogn)
+3. 
+
+[2nd interview]
+
+1. merge sort worst TC => O(nlogN)
+2. when the quick sort is worst => all items are sorted 
+3. give an example of balanced tree => 2,3,4 tree or red-black tree
+4. is DFS or BFS better to get short path for non-weight graph? BFS 
+5. which C keyword related to local variable life cycle -> static (int ...)
+6. 2 ^ 20 = 1M
+
+[Collect from Internet]
