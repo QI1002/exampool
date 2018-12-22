@@ -20,7 +20,7 @@
 #include <linux/module.h>
 #include <linux/kref.h>
 #include <linux/usb.h>
-#include <asm/uaccess.h>
+#include <linux/uaccess.h>
 
 
 /* Define these values to match your devices */
@@ -119,7 +119,7 @@ static ssize_t skel_read(struct file *file, char __user *buffer, size_t count, l
 			      usb_rcvbulkpipe(dev->udev, dev->bulk_in_endpointAddr),
 			      dev->bulk_in_buffer,
 			      min(dev->bulk_in_size, count),
-			      &count, HZ*10);
+			      (int *) &count, HZ*10);
 
 	/* if the read was successful, copy the data to userspace */
 	if (!retval) {
@@ -134,13 +134,16 @@ static ssize_t skel_read(struct file *file, char __user *buffer, size_t count, l
 
 static void skel_write_bulk_callback(struct urb *urb)
 {
+	struct usb_skel *dev = urb->context;
+
 	/* sync/async unlink faults aren't errors */
 	if (urb->status && 
 	    !(urb->status == -ENOENT || 
 	      urb->status == -ECONNRESET ||
 	      urb->status == -ESHUTDOWN)) {
-		dbg("%s - nonzero write bulk status received: %d",
-		    __FUNCTION__, urb->status);
+		dev_dbg(&dev->interface->dev,
+			"%s - nonzero write bulk status received: %d",
+			__FUNCTION__, urb->status);
 	}
 
 	/* free up our allocated buffer */
@@ -232,12 +235,11 @@ static int skel_probe(struct usb_interface *interface, const struct usb_device_i
 	int retval = -ENOMEM;
 
 	/* allocate memory for our device state and initialize it */
-	dev = kmalloc(sizeof(struct usb_skel), GFP_KERNEL);
-	if (dev == NULL) {
+	dev = kzalloc(sizeof(struct usb_skel), GFP_KERNEL);
+	if (!dev) {
 		pr_err("Out of memory");
 		goto error;
 	}
-	memset(dev, 0x00, sizeof (*dev));
 	kref_init(&dev->kref);
 
 	dev->udev = usb_get_dev(interface_to_usbdev(interface));

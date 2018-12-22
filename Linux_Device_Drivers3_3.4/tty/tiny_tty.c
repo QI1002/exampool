@@ -23,20 +23,20 @@
 #include <linux/tty_flip.h>
 #include <linux/serial.h>
 #include <linux/sched.h>
+#include <linux/sched/signal.h>
 #include <linux/seq_file.h>
-#include <asm/uaccess.h>
-
+#include <linux/uaccess.h>
 
 #define DRIVER_VERSION "v2.0"
 #define DRIVER_AUTHOR "Greg Kroah-Hartman <greg@kroah.com>"
 #define DRIVER_DESC "Tiny TTY driver"
 
 /* Module information */
-MODULE_AUTHOR( DRIVER_AUTHOR );
-MODULE_DESCRIPTION( DRIVER_DESC );
+MODULE_AUTHOR(DRIVER_AUTHOR);
+MODULE_DESCRIPTION(DRIVER_DESC);
 MODULE_LICENSE("GPL");
 
-#define DELAY_TIME		HZ * 2	/* 2 seconds per character */
+#define DELAY_TIME		(HZ * 2)	/* 2 seconds per character */
 #define TINY_DATA_CHARACTER	't'
 
 #define TINY_TTY_MAJOR		240	/* experimental range */
@@ -46,7 +46,7 @@ struct tiny_serial {
 	struct tty_struct	*tty;		/* pointer to the tty for this device */
 	int			open_count;	/* number of times this port has been opened */
 	struct semaphore	sem;		/* locks this structure */
-	struct timer_list	*timer;
+	struct timer_list	timer;
 
 	/* for tiocmget and tiocmset functions */
 	int			msr;		/* MSR shadow */
@@ -59,12 +59,14 @@ struct tiny_serial {
 };
 
 static struct tiny_serial *tiny_table[TINY_TTY_MINORS];	/* initially all NULL */
+static struct tty_port tiny_tty_port[TINY_TTY_MINORS];
 
 
-static void tiny_timer(unsigned long timer_data)
+static void tiny_timer(struct timer_list *t)
 {
-	struct tiny_serial *tiny = (struct tiny_serial *)timer_data;
+	struct tiny_serial *tiny = from_timer(tiny, t, timer);
 	struct tty_struct *tty;
+	struct tty_port *port;
 	int i;
 	char data[1] = {TINY_DATA_CHARACTER};
 	int data_size = 1;
@@ -73,25 +75,25 @@ static void tiny_timer(unsigned long timer_data)
 		return;
 
 	tty = tiny->tty;
+	port = tty->port;
 
 	/* send the data to the tty layer for users to read.  This doesn't
 	 * actually push the data through unless tty->low_latency is set */
 	for (i = 0; i < data_size; ++i) {
-		if (!tty_buffer_request_room(tty, 1))
-			tty_flip_buffer_push(tty);
-		tty_insert_flip_char(tty, data[i], TTY_NORMAL);
+		if (!tty_buffer_request_room(port, 1))
+			tty_flip_buffer_push(port);
+		tty_insert_flip_char(port, data[i], TTY_NORMAL);
 	}
-	tty_flip_buffer_push(tty);
+	tty_flip_buffer_push(port);
 
 	/* resubmit the timer again */
-	tiny->timer->expires = jiffies + DELAY_TIME;
-	add_timer(tiny->timer);
+	tiny->timer.expires = jiffies + DELAY_TIME;
+	add_timer(&tiny->timer);
 }
 
 static int tiny_open(struct tty_struct *tty, struct file *file)
 {
 	struct tiny_serial *tiny;
-	struct timer_list *timer;
 	int index;
 
 	/* initialize the pointer in case something fails */
@@ -108,7 +110,6 @@ static int tiny_open(struct tty_struct *tty, struct file *file)
 
 		sema_init(&tiny->sem, 1);
 		tiny->open_count = 0;
-		tiny->timer = NULL;
 
 		tiny_table[index] = tiny;
 	}
@@ -125,18 +126,9 @@ static int tiny_open(struct tty_struct *tty, struct file *file)
 		/* do any hardware initialization needed here */
 
 		/* create our timer and submit it */
-		if (!tiny->timer) {
-			timer = kmalloc(sizeof(*timer), GFP_KERNEL);
-			if (!timer) {
-				up(&tiny->sem);
-				return -ENOMEM;
-			}
-			tiny->timer = timer;
-		}
-		tiny->timer->data = (unsigned long )tiny;
-		tiny->timer->expires = jiffies + DELAY_TIME;
-		tiny->timer->function = tiny_timer;
-		add_timer(tiny->timer);
+		timer_setup(&tiny->timer, tiny_timer, 0);
+		tiny->timer.expires = jiffies + DELAY_TIME;
+		add_timer(&tiny->timer);
 	}
 
 	up(&tiny->sem);
@@ -158,7 +150,7 @@ static void do_close(struct tiny_serial *tiny)
 		/* Do any hardware specific stuff here */
 
 		/* shut down our timer */
-		del_timer(tiny->timer);
+		del_timer(&tiny->timer);
 	}
 exit:
 	up(&tiny->sem);
@@ -170,9 +162,9 @@ static void tiny_close(struct tty_struct *tty, struct file *file)
 
 	if (tiny)
 		do_close(tiny);
-}	
+}
 
-static int tiny_write(struct tty_struct *tty, 
+static int tiny_write(struct tty_struct *tty,
 		      const unsigned char *buffer, int count)
 {
 	struct tiny_serial *tiny = tty->driver_data;
@@ -191,17 +183,17 @@ static int tiny_write(struct tty_struct *tty,
 	/* fake sending the data out a hardware port by
 	 * writing it to the kernel debug log.
 	 */
-	printk(KERN_DEBUG "%s - ", __FUNCTION__);
+	pr_debug("%s - ", __func__);
 	for (i = 0; i < count; ++i)
-		printk("%02x ", buffer[i]);
-	printk("\n");
-		
+		pr_info("%02x ", buffer[i]);
+	pr_info("\n");
+
 exit:
 	up(&tiny->sem);
 	return retval;
 }
 
-static int tiny_write_room(struct tty_struct *tty) 
+static int tiny_write_room(struct tty_struct *tty)
 {
 	struct tiny_serial *tiny = tty->driver_data;
 	int room = -EINVAL;
@@ -210,7 +202,7 @@ static int tiny_write_room(struct tty_struct *tty)
 		return -ENODEV;
 
 	down(&tiny->sem);
-	
+
 	if (!tiny->open_count) {
 		/* port was not opened */
 		goto exit;
@@ -230,58 +222,58 @@ static void tiny_set_termios(struct tty_struct *tty, struct ktermios *old_termio
 {
 	unsigned int cflag;
 
-	cflag = tty->termios->c_cflag;
+	cflag = tty->termios.c_cflag;
 
 	/* check that they really want us to change something */
 	if (old_termios) {
 		if ((cflag == old_termios->c_cflag) &&
-		    (RELEVANT_IFLAG(tty->termios->c_iflag) == 
+		    (RELEVANT_IFLAG(tty->termios.c_iflag) ==
 		     RELEVANT_IFLAG(old_termios->c_iflag))) {
-			printk(KERN_DEBUG " - nothing to change...\n");
+			pr_debug(" - nothing to change...\n");
 			return;
 		}
 	}
 
 	/* get the byte size */
 	switch (cflag & CSIZE) {
-		case CS5:
-			printk(KERN_DEBUG " - data bits = 5\n");
-			break;
-		case CS6:
-			printk(KERN_DEBUG " - data bits = 6\n");
-			break;
-		case CS7:
-			printk(KERN_DEBUG " - data bits = 7\n");
-			break;
-		default:
-		case CS8:
-			printk(KERN_DEBUG " - data bits = 8\n");
-			break;
+	case CS5:
+		pr_debug(" - data bits = 5\n");
+		break;
+	case CS6:
+		pr_debug(" - data bits = 6\n");
+		break;
+	case CS7:
+		pr_debug(" - data bits = 7\n");
+		break;
+	default:
+	case CS8:
+		pr_debug(" - data bits = 8\n");
+		break;
 	}
-	
+
 	/* determine the parity */
 	if (cflag & PARENB)
 		if (cflag & PARODD)
-			printk(KERN_DEBUG " - parity = odd\n");
+			pr_debug(" - parity = odd\n");
 		else
-			printk(KERN_DEBUG " - parity = even\n");
+			pr_debug(" - parity = even\n");
 	else
-		printk(KERN_DEBUG " - parity = none\n");
+		pr_debug(" - parity = none\n");
 
 	/* figure out the stop bits requested */
 	if (cflag & CSTOPB)
-		printk(KERN_DEBUG " - stop bits = 2\n");
+		pr_debug(" - stop bits = 2\n");
 	else
-		printk(KERN_DEBUG " - stop bits = 1\n");
+		pr_debug(" - stop bits = 1\n");
 
 	/* figure out the hardware flow control settings */
 	if (cflag & CRTSCTS)
-		printk(KERN_DEBUG " - RTS/CTS is enabled\n");
+		pr_debug(" - RTS/CTS is enabled\n");
 	else
-		printk(KERN_DEBUG " - RTS/CTS is disabled\n");
-	
+		pr_debug(" - RTS/CTS is disabled\n");
+
 	/* determine software flow control */
-	/* if we are implementing XON/XOFF, set the start and 
+	/* if we are implementing XON/XOFF, set the start and
 	 * stop character in the device */
 	if (I_IXOFF(tty) || I_IXON(tty)) {
 		unsigned char stop_char  = STOP_CHAR(tty);
@@ -289,21 +281,21 @@ static void tiny_set_termios(struct tty_struct *tty, struct ktermios *old_termio
 
 		/* if we are implementing INBOUND XON/XOFF */
 		if (I_IXOFF(tty))
-			printk(KERN_DEBUG " - INBOUND XON/XOFF is enabled, "
+			pr_debug(" - INBOUND XON/XOFF is enabled, "
 				"XON = %2x, XOFF = %2x", start_char, stop_char);
 		else
-			printk(KERN_DEBUG" - INBOUND XON/XOFF is disabled");
+			pr_debug(" - INBOUND XON/XOFF is disabled");
 
 		/* if we are implementing OUTBOUND XON/XOFF */
 		if (I_IXON(tty))
-			printk(KERN_DEBUG" - OUTBOUND XON/XOFF is enabled, "
+			pr_debug(" - OUTBOUND XON/XOFF is enabled, "
 				"XON = %2x, XOFF = %2x", start_char, stop_char);
 		else
-			printk(KERN_DEBUG" - OUTBOUND XON/XOFF is disabled");
+			pr_debug(" - OUTBOUND XON/XOFF is disabled");
 	}
 
 	/* get the baud rate wanted */
-	printk(KERN_DEBUG " - baud rate = %d", tty_get_baud_rate(tty));
+	pr_debug(" - baud rate = %d", tty_get_baud_rate(tty));
 }
 
 /* Our fake UART values */
@@ -324,12 +316,12 @@ static int tiny_tiocmget(struct tty_struct *tty)
 	unsigned int mcr = tiny->mcr;
 
 	result = ((mcr & MCR_DTR)  ? TIOCM_DTR  : 0) |	/* DTR is set */
-             ((mcr & MCR_RTS)  ? TIOCM_RTS  : 0) |	/* RTS is set */
-             ((mcr & MCR_LOOP) ? TIOCM_LOOP : 0) |	/* LOOP is set */
-             ((msr & MSR_CTS)  ? TIOCM_CTS  : 0) |	/* CTS is set */
-             ((msr & MSR_CD)   ? TIOCM_CAR  : 0) |	/* Carrier detect is set*/
-             ((msr & MSR_RI)   ? TIOCM_RI   : 0) |	/* Ring Indicator is set */
-             ((msr & MSR_DSR)  ? TIOCM_DSR  : 0);	/* DSR is set */
+		((mcr & MCR_RTS)  ? TIOCM_RTS  : 0) |	/* RTS is set */
+		((mcr & MCR_LOOP) ? TIOCM_LOOP : 0) |	/* LOOP is set */
+		((msr & MSR_CTS)  ? TIOCM_CTS  : 0) |	/* CTS is set */
+		((msr & MSR_CD)   ? TIOCM_CAR  : 0) |	/* Carrier detect is set*/
+		((msr & MSR_RI)   ? TIOCM_RI   : 0) |	/* Ring Indicator is set */
+		((msr & MSR_DSR)  ? TIOCM_DSR  : 0);	/* DSR is set */
 
 	return result;
 }
@@ -436,7 +428,7 @@ static int tiny_ioctl(struct tty_struct *tty, unsigned int cmd,
 			if (((arg & TIOCM_RNG) && (cnow.rng != cprev.rng)) ||
 			    ((arg & TIOCM_DSR) && (cnow.dsr != cprev.dsr)) ||
 			    ((arg & TIOCM_CD)  && (cnow.dcd != cprev.dcd)) ||
-			    ((arg & TIOCM_CTS) && (cnow.cts != cprev.cts)) ) {
+			    ((arg & TIOCM_CTS) && (cnow.cts != cprev.cts))) {
 				return 0;
 			}
 			cprev = cnow;
@@ -495,19 +487,19 @@ static int tiny_ioctl(struct tty_struct *tty, unsigned int cmd,
 
 static int tiny_proc_open(struct inode *inode, struct file *file)
 {
-        return single_open(file, tiny_proc_show, NULL);
+	return single_open(file, tiny_proc_show, NULL);
 }
 
 
 static const struct file_operations serial_proc_fops = {
-        .owner          = THIS_MODULE,
-        .open           = tiny_proc_open,
-	.read           = seq_read,
-        .llseek         = seq_lseek,
-        .release        = single_release,
+	.owner		= THIS_MODULE,
+	.open		= tiny_proc_open,
+	.read		= seq_read,
+	.llseek		= seq_lseek,
+	.release	= single_release,
 };
 
-static struct tty_operations serial_ops = {
+static const struct tty_operations serial_ops = {
 	.open = tiny_open,
 	.close = tiny_close,
 	.write = tiny_write,
@@ -542,11 +534,15 @@ static int __init tiny_init(void)
 	tiny_tty_driver->init_termios = tty_std_termios;
 	tiny_tty_driver->init_termios.c_cflag = B9600 | CS8 | CREAD | HUPCL | CLOCAL;
 	tty_set_operations(tiny_tty_driver, &serial_ops);
+	for (i = 0; i < TINY_TTY_MINORS; i++) {
+		tty_port_init(tiny_tty_port + i);
+		tty_port_link_device(tiny_tty_port + i, tiny_tty_driver, i);
+	}
 
 	/* register the tty driver */
 	retval = tty_register_driver(tiny_tty_driver);
 	if (retval) {
-		printk(KERN_ERR "failed to register tiny tty driver");
+		pr_err("failed to register tiny tty driver");
 		put_tty_driver(tiny_tty_driver);
 		return retval;
 	}
@@ -554,7 +550,7 @@ static int __init tiny_init(void)
 	for (i = 0; i < TINY_TTY_MINORS; ++i)
 		tty_register_device(tiny_tty_driver, i, NULL);
 
-	printk(KERN_INFO DRIVER_DESC " " DRIVER_VERSION);
+	pr_info(DRIVER_DESC " " DRIVER_VERSION);
 	return retval;
 }
 
@@ -576,8 +572,7 @@ static void __exit tiny_exit(void)
 				do_close(tiny);
 
 			/* shut down our timer and free the memory */
-			del_timer(tiny->timer);
-			kfree(tiny->timer);
+			del_timer(&tiny->timer);
 			kfree(tiny);
 			tiny_table[i] = NULL;
 		}

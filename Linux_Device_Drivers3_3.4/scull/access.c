@@ -30,6 +30,7 @@
 #include <linux/list.h>
 #include <linux/cred.h> /* current_uid(), current_euid() */
 #include <linux/sched.h>
+#include <linux/sched/signal.h>
 
 #include "scull.h"        /* local definitions */
 
@@ -105,15 +106,15 @@ static int scull_u_open(struct inode *inode, struct file *filp)
 
 	spin_lock(&scull_u_lock);
 	if (scull_u_count && 
-	                (scull_u_owner != current_uid()) &&  /* allow user */
-	                (scull_u_owner != current_euid()) && /* allow whoever did su */
+	                (scull_u_owner != current_uid().val) &&  /* allow user */
+	                (scull_u_owner != current_euid().val) && /* allow whoever did su */
 			!capable(CAP_DAC_OVERRIDE)) { /* still allow root */
 		spin_unlock(&scull_u_lock);
 		return -EBUSY;   /* -EPERM would confuse the user */
 	}
 
 	if (scull_u_count == 0)
-		scull_u_owner = current_uid(); /* grab it */
+		scull_u_owner = current_uid().val; /* grab it */
 
 	scull_u_count++;
 	spin_unlock(&scull_u_lock);
@@ -164,8 +165,8 @@ static DEFINE_SPINLOCK(scull_w_lock);
 static inline int scull_w_available(void)
 {
 	return scull_w_count == 0 ||
-		scull_w_owner == current_uid() ||
-		scull_w_owner == current_euid() ||
+		scull_w_owner == current_uid().val ||
+		scull_w_owner == current_euid().val ||
 		capable(CAP_DAC_OVERRIDE);
 }
 
@@ -183,7 +184,7 @@ static int scull_w_open(struct inode *inode, struct file *filp)
 		spin_lock(&scull_w_lock);
 	}
 	if (scull_w_count == 0)
-		scull_w_owner = current_uid(); /* grab it */
+		scull_w_owner = current_uid().val; /* grab it */
 	scull_w_count++;
 	spin_unlock(&scull_w_lock);
 
@@ -334,7 +335,7 @@ static struct scull_adev_info {
 	{ "scullsingle", &scull_s_device, &scull_sngl_fops },
 	{ "sculluid", &scull_u_device, &scull_user_fops },
 	{ "scullwuid", &scull_w_device, &scull_wusr_fops },
-	{ "sullpriv", &scull_c_device, &scull_priv_fops }
+	{ "scullpriv", &scull_c_device, &scull_priv_fops }
 };
 #define SCULL_N_ADEVS 4
 

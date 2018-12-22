@@ -26,6 +26,7 @@
 #include <linux/init.h>
 
 #include <linux/sched.h>
+#include <linux/sched/signal.h>
 #include <linux/kernel.h>	/* printk() */
 #include <linux/fs.h>		/* everything... */
 #include <linux/errno.h>	/* error codes */
@@ -188,7 +189,7 @@ ssize_t do_short_read (struct inode *inode, struct file *filp, char __user *buf,
  */
 ssize_t short_read(struct file *filp, char __user *buf, size_t count, loff_t *f_pos)
 {
-	return do_short_read(filp->f_dentry->d_inode, filp, buf, count, f_pos);
+	return do_short_read(file_dentry(filp)->d_inode, filp, buf, count, f_pos);
 }
 
 
@@ -250,7 +251,7 @@ ssize_t do_short_write (struct inode *inode, struct file *filp, const char __use
 ssize_t short_write(struct file *filp, const char __user *buf, size_t count,
 		loff_t *f_pos)
 {
-	return do_short_write(filp->f_dentry->d_inode, filp, buf, count, f_pos);
+	return do_short_write(file_dentry(filp)->d_inode, filp, buf, count, f_pos);
 }
 
 
@@ -510,7 +511,7 @@ void short_selfprobe(void)
       */
 	for (i = 0; trials[i]; i++)
 		tried[i] = request_irq(trials[i], short_probing,
-				IRQF_DISABLED, "short probe", NULL);
+				       0, "short probe", NULL);
 
 	do {
 		short_irq = 0; /* none got, yet */
@@ -620,7 +621,7 @@ int short_init(void)
 	 */
 	if (short_irq >= 0 && share > 0) {
 		result = request_irq(short_irq, short_sh_interrupt,
-				IRQF_SHARED | IRQF_DISABLED,"short",
+				     IRQF_SHARED,"short",
 				short_sh_interrupt);
 		if (result) {
 			printk(KERN_INFO "short: can't get assigned irq %i\n", short_irq);
@@ -634,7 +635,7 @@ int short_init(void)
 
 	if (short_irq >= 0) {
 		result = request_irq(short_irq, short_interrupt,
-				IRQF_DISABLED, "short", NULL);
+				     0, "short", NULL);
 		if (result) {
 			printk(KERN_INFO "short: can't get assigned irq %i\n",
 					short_irq);
@@ -654,7 +655,7 @@ int short_init(void)
 		result = request_irq(short_irq,
 				tasklet ? short_tl_interrupt :
 				short_wq_interrupt,
-				IRQF_DISABLED,"short-bh", NULL);
+				0, "short-bh", NULL);
 		if (result) {
 			printk(KERN_INFO "short-bh: can't get assigned irq %i\n",
 					short_irq);

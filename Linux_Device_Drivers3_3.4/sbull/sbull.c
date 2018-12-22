@@ -137,7 +137,7 @@ static int sbull_xfer_bio(struct sbull_dev *dev, struct bio *bio)
 		sbull_transfer(dev, sector, bio_cur_bytes(bio) >> 9,
 				buffer, bio_data_dir(bio) == WRITE);
 		sector += bio_cur_bytes(bio) >> 9;
-		__bio_kunmap_atomic(bio, KM_USER0);
+		__bio_kunmap_atomic(buffer, KM_USER0);
 	}
 	return 0; /* Always "succeed" */
 }
@@ -191,7 +191,6 @@ static void sbull_make_request(struct request_queue *q, struct bio *bio)
 
 	status = sbull_xfer_bio(dev, bio);
 	bio_endio(bio, status);
-	return 0;
 }
 
 
@@ -213,7 +212,7 @@ static int sbull_open(struct block_device *bdev, fmode_t mode)
 	return 0;
 }
 
-static int sbull_release(struct gendisk *disk, fmode_t mode)
+static void sbull_release(struct gendisk *disk, fmode_t mode)
 {
 	struct sbull_dev *dev = disk->private_data;
 
@@ -225,8 +224,6 @@ static int sbull_release(struct gendisk *disk, fmode_t mode)
 		add_timer(&dev->timer);
 	}
 	spin_unlock(&dev->lock);
-
-	return 0;
 }
 
 /*

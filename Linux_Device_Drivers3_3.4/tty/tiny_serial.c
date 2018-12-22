@@ -21,7 +21,7 @@
 #include <linux/serial.h>
 #include <linux/serial_core.h>
 #include <linux/module.h>
-
+#include <linux/version.h>
 
 #define DRIVER_AUTHOR "Greg Kroah-Hartman <greg@kroah.com>"
 #define DRIVER_DESC "Tiny serial driver"
@@ -96,6 +96,7 @@ static void tiny_timer(unsigned long data)
 {
 	struct uart_port *port;
 	struct tty_struct *tty;
+	struct tty_port *tty_port;
 
 
 	port = (struct uart_port *)data;
@@ -107,11 +108,13 @@ static void tiny_timer(unsigned long data)
 	if (!tty)
 		return;
 
+	tty_port = tty->port;
+
 	/* add one character to the tty port */
 	/* this doesn't actually push the data through unless tty->low_latency is set */
-	tty_insert_flip_char(tty, TINY_DATA_CHARACTER, 0);
+	tty_insert_flip_char(tty_port, TINY_DATA_CHARACTER, 0);
 
-	tty_flip_buffer_push(tty);
+	tty_flip_buffer_push(tty_port);
 
 	/* resubmit the timer again */
 	timer->expires = jiffies + DELAY_TIME;
@@ -199,9 +202,14 @@ static int tiny_startup(struct uart_port *port)
 		if (!timer)
 			return -ENOMEM;
 	}
-	timer->data = (unsigned long)port;
+    #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
+        timer->data = (unsigned long)port;
+        timer->function = tiny_timer;
+    #else
+        timer_setup(timer, (void *) tiny_timer, (unsigned long) port);
+        timer->function = (void *) tiny_timer;
+    #endif
 	timer->expires = jiffies + DELAY_TIME;
-	timer->function = tiny_timer;
 	add_timer(timer);
 	return 0;
 }

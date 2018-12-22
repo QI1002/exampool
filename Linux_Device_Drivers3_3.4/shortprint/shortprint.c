@@ -19,6 +19,7 @@
 #include <linux/moduleparam.h>
 
 #include <linux/sched.h>
+#include <linux/sched/signal.h>
 #include <linux/kernel.h> /* printk() */
 #include <linux/fs.h>	  /* everything... */
 #include <linux/errno.h>  /* error codes */
@@ -68,7 +69,7 @@ MODULE_LICENSE("Dual BSD/GPL");
  * Forwards.
  */
 static void shortp_cleanup(void);
-static void shortp_timeout(unsigned long unused);
+static void shortp_timeout(struct timer_list *unused);
 
 /*
  * Input is managed through a simple circular buffer which, among other things,
@@ -375,7 +376,7 @@ static irqreturn_t shortp_interrupt(int irq, void *dev_id)
  * things have gone wrong, however; printers can spend an awful long time
  * just thinking about things.
  */
-static void shortp_timeout(unsigned long unused)
+static void shortp_timeout(struct timer_list *unused)
 {
 	unsigned long flags;
 	unsigned char status;
@@ -460,9 +461,7 @@ static int shortp_init(void)
 	/* And the output info */
 	shortp_output_active = 0;
 	spin_lock_init(&shortp_out_lock);
-	init_timer(&shortp_timer);
-	shortp_timer.function = shortp_timeout;
-	shortp_timer.data = 0;
+	timer_setup(&shortp_timer, shortp_timeout, 0);
     
 	/* Set up our workqueue. */
 	shortp_workqueue = create_singlethread_workqueue("shortprint");
