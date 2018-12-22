@@ -389,6 +389,7 @@ loff_t scullp_llseek (struct file *filp, loff_t off, int whence)
  * A simple asynchronous I/O implementation.
  */
 
+#if 0
 struct async_work {
 	struct kiocb *iocb;
 	int result;
@@ -455,7 +456,7 @@ static ssize_t scullp_aio_write(struct kiocb *iocb, const struct iovec *iovec,
 	return scullp_defer_op(1, iocb, iovec, nr_segs, pos);
 }
 
-
+#endif
  
 /*
  * Mmap *is* available, but confined in a different file
@@ -476,8 +477,8 @@ struct file_operations scullp_fops = {
 	.mmap =	     scullp_mmap,
 	.open =	     scullp_open,
 	.release =   scullp_release,
-	.aio_read =  scullp_aio_read,
-	.aio_write = scullp_aio_write,
+	//.aio_read =  scullp_aio_read,
+	//.aio_write = scullp_aio_write,
 };
 
 int scullp_trim(struct scullp_dev *dev)

@@ -390,6 +390,7 @@ loff_t scullc_llseek (struct file *filp, loff_t off, int whence)
  * A simple asynchronous I/O implementation.
  */
 
+#if 0
 struct async_work {
 	struct kiocb *iocb;
 	int result;
@@ -456,7 +457,7 @@ static ssize_t scullc_aio_write(struct kiocb *iocb, const struct iovec *iovec,
 	return scullc_defer_op(1, iocb, iovec, nr_segs, pos);
 }
 
-
+#endif
  
 
 /*
@@ -471,8 +472,8 @@ struct file_operations scullc_fops = {
 	.unlocked_ioctl = scullc_ioctl,
 	.open =	     scullc_open,
 	.release =   scullc_release,
-	.aio_read =  scullc_aio_read,
-	.aio_write = scullc_aio_write,
+	//.aio_read =  scullc_aio_read,
+	//.aio_write = scullc_aio_write,
 };
 
 int scullc_trim(struct scullc_dev *dev)
