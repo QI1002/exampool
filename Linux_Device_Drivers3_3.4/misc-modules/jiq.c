@@ -62,6 +62,7 @@ static struct clientdata {
 	int len;
 	unsigned long jiffies;
 	long delay;
+	int flag;
 } jiq_data;
 
 #define SCHEDULER_QUEUE ((task_queue *) 1)
@@ -81,6 +82,7 @@ static int jiq_print(void *ptr)
 	unsigned long j = jiffies;
 
 	if (len > LIMIT) {
+		data->flag = 1;
 		wake_up_interruptible(&jiq_wait);
 		return 0;
 	}
@@ -204,9 +206,10 @@ static int jiq_read_tasklet_show(struct seq_file *m, void *v)
 	jiq_data.len = 0;                /* nothing printed, yet */
 	jiq_data.m = m;                  /* print in this place */
 	jiq_data.jiffies = jiffies;      /* initial time */
+        jiq_data.flag = 0;
 
 	tasklet_schedule(&jiq_tasklet);
-	wait_event_interruptible(jiq_wait, 0);  /* sleep till completion */
+	wait_event_interruptible(jiq_wait, jiq_data.flag != 0);  /* sleep till completion */
 
 	return 0;
 }

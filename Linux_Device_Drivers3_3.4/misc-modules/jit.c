@@ -37,6 +37,7 @@
  * that show how time delays can be handled in the kernel.
  */
 
+// in ubuntu, use uname -a to know current config and find it's config in /boot and find CONFIG_HZ (ex: 250)
 int delay = HZ; /* the default delay, expressed in jiffies */
 
 module_param(delay, int, 0);

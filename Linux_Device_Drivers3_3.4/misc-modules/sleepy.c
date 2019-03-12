@@ -23,6 +23,7 @@
 #include <linux/fs.h>     /* everything... */
 #include <linux/types.h>  /* size_t */
 #include <linux/wait.h>
+#include <linux/sched/signal.h>
 
 MODULE_LICENSE("Dual BSD/GPL");
 
@@ -36,6 +37,11 @@ ssize_t sleepy_read (struct file *filp, char __user *buf, size_t count, loff_t *
 	printk(KERN_DEBUG "process %i (%s) going to sleep\n",
 			current->pid, current->comm);
 	wait_event_interruptible(wq, flag != 0);
+	if (signal_pending(current)) {
+            // exit_signal is not correct id if signal occur
+            printk(KERN_DEBUG "%i (%s) interrupt by signal %i\n", current->pid, current->comm, current->exit_signal);		
+	    return -ERESTARTSYS;
+	}
 	flag = 0;
 	printk(KERN_DEBUG "awoken %i (%s)\n", current->pid, current->comm);
 	return 0; /* EOF */
