@@ -1,4 +1,4 @@
-
+# it's reasonable to get WARNINGs: not found ldd functions due to they will be found if insmod lddbus.ko first then sculld.ko
 # Comment/uncomment the following line to enable/disable debugging
 #DEBUG = y
 
