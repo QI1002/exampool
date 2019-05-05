@@ -40,8 +40,10 @@ MODULE_LICENSE("Dual BSD/GPL");
 
 /*
  * Open the device; in fact, there's nothing to do here.
+ * duplicated declaration
+ * ./include/linux/fs.h:3148:12: note: previous declaration of ‘simple_open’ was here
  */
-static int simple_open (struct inode *inode, struct file *filp)
+static int simplefs_open (struct inode *inode, struct file *filp)
 {
 	return 0;
 }
@@ -128,15 +130,19 @@ static int simple_remap_mmap(struct file *filp, struct vm_area_struct *vma)
 /*
  * The nopage version.
  */
-static int simple_vma_nopage(struct vm_area_struct *vma, struct vm_fault *vmf)
+//static int simple_vma_nopage(struct vm_area_struct *vma, struct vm_fault *vmf)
+static int simple_vma_nopage(struct vm_fault *vmf)
 {
+        struct vm_area_struct *vma = vmf->vma;
 	struct page *pageptr;
 	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
-	unsigned long physaddr = (unsigned long) vmf->virtual_address - vma->vm_start + offset;
+	//unsigned long physaddr = (unsigned long) vmf->virtual_address - vma->vm_start + offset;
+        unsigned long physaddr = (unsigned long) vmf->address - vma->vm_start + offset;
 	unsigned long pageframe = physaddr >> PAGE_SHIFT;
 
 // Eventually remove these printks
-	printk (KERN_NOTICE "---- Nopage, off %lx phys %lx nopage VA %p (%lx)\n", offset, physaddr, vmf->virtual_address, vma->vm_start);
+	//printk (KERN_NOTICE "---- Nopage, off %lx phys %lx nopage VA %p (%lx)\n", offset, physaddr, vmf->virtual_address, vma->vm_start);
+        printk (KERN_NOTICE "---- Nopage, off %lx phys %lx nopage VA %ld (%lx)\n", offset, physaddr, vmf->address, vma->vm_start);
 	printk (KERN_NOTICE "VA is %p\n", __va (physaddr));
 	printk (KERN_NOTICE "Page at %p\n", virt_to_page (__va (physaddr)));
 	if (!pfn_valid(pageframe))
@@ -162,7 +168,7 @@ static int simple_nopage_mmap(struct file *filp, struct vm_area_struct *vma)
 
 	if (offset >= __pa(high_memory) || (filp->f_flags & O_SYNC))
 		vma->vm_flags |= VM_IO;
-	vma->vm_flags |= VM_RESERVED;
+//	vma->vm_flags |= VM_RESERVED;
 
 	vma->vm_ops = &simple_nopage_vm_ops;
 	simple_vma_open(vma);
@@ -227,12 +233,12 @@ int MMU_map_user_pages(IOMMU_USER_RANGE_T* prUserRange)
         down_read(&current->mm->mmap_sem);
         /* rw == READ(0) means read from driver, user space write into memory area, otherwise write from driver if WRITE(1) and read from user space */
         res = get_user_pages(
-                current,
-                current->mm,
+                //current,
+                //current->mm,
                 uaddr,
                 nr_pages, 
                 write_flag, /* rw: 0=READ, 1=WRITE */
-                0, /* don't force */
+                //0, /* don't force */
                 pages,
                 NULL);
         up_read(&current->mm->mmap_sem);
@@ -430,7 +436,7 @@ static void simple_setup_cdev(struct cdev *dev, int minor,
 /* Device 0 uses remap_pfn_range */
 static struct file_operations simple_remap_ops = {
 	.owner   = THIS_MODULE,
-	.open    = simple_open,
+	.open    = simplefs_open,
 	.release = simple_release,
 	.mmap    = simple_remap_mmap,
         .unlocked_ioctl = simple_ioctl,
@@ -439,7 +445,7 @@ static struct file_operations simple_remap_ops = {
 /* Device 1 uses nopage */
 static struct file_operations simple_nopage_ops = {
 	.owner   = THIS_MODULE,
-	.open    = simple_open,
+	.open    = simplefs_open,
 	.release = simple_release,
 	.mmap    = simple_nopage_mmap,
         .unlocked_ioctl = simple_ioctl,
