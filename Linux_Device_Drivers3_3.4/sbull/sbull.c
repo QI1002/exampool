@@ -55,7 +55,8 @@ module_param(request_mode, int, 0);
  * We can tweak our hardware sector size, but the kernel talks to us
  * in terms of small sectors, always.
  */
-#define KERNEL_SECTOR_SIZE	512
+#define KERNEL_SECTOR_SHIFT	9
+#define KERNEL_SECTOR_SIZE	(1<<KERNEL_SECTOR_SHIFT)
 
 /*
  * After this much idle time, the driver will simulate a media change.
@@ -77,6 +78,15 @@ struct sbull_dev {
 };
 
 static struct sbull_dev *Devices = NULL;
+
+static int bytes_to_sectors_checked(unsigned long bytes)
+{
+	if( bytes % KERNEL_SECTOR_SIZE )
+	{
+		printk("***************WhatTheFuck***********************\n");
+	}
+	return bytes / KERNEL_SECTOR_SIZE;
+}
 
 /*
  * Handle an I/O request.
@@ -103,44 +113,49 @@ static void sbull_transfer(struct sbull_dev *dev, unsigned long sector,
 static void sbull_request(struct request_queue *q)
 {
 	struct request *req;
+	int ret;
 
-	while ((req = blk_fetch_request(q)) != NULL) {
+	req = blk_fetch_request(q);
+	while (req) {
 		struct sbull_dev *dev = req->rq_disk->private_data;
-		if (req->cmd_type != REQ_TYPE_FS) {
+		if (blk_rq_is_passthrough(req)) {
 			printk (KERN_NOTICE "Skip non-fs request\n");
-			__blk_end_request_cur(req, -EIO);
-			continue;
+			ret = -EIO;
+			goto done;
 		}
-    //    	printk (KERN_NOTICE "Req dev %d dir %ld sec %ld, nr %d f %lx\n",
-    //    			dev - Devices, rq_data_dir(req),
-    //    			req->sector, req->current_nr_sectors,
-    //    			req->flags);
+		printk (KERN_NOTICE "Req dev %u dir %d sec %ld, nr %d\n",
+			(unsigned)(dev - Devices), rq_data_dir(req),
+			blk_rq_pos(req), blk_rq_cur_sectors(req));
 		sbull_transfer(dev, blk_rq_pos(req), blk_rq_cur_sectors(req),
-				req->buffer, rq_data_dir(req));
-		__blk_end_request_cur(req, 0);
+				bio_data(req->bio), rq_data_dir(req));
+		ret = 0;
+	done:
+		if(!__blk_end_request_cur(req, ret)){
+			req = blk_fetch_request(q);
+		}
 	}
 }
-
 
 /*
  * Transfer a single BIO.
  */
 static int sbull_xfer_bio(struct sbull_dev *dev, struct bio *bio)
 {
-	int i;
-	struct bio_vec *bvec;
-	sector_t sector = bio->bi_sector;
+	struct bio_vec bvec;
+	struct bvec_iter iter;
+	sector_t sector = bio->bi_iter.bi_sector;
 
 	/* Do each segment independently. */
-	bio_for_each_segment(bvec, bio, i) {
-		char *buffer = __bio_kmap_atomic(bio, i, KM_USER0);
-		sbull_transfer(dev, sector, bio_cur_bytes(bio) >> 9,
+	bio_for_each_segment(bvec, bio, iter) {
+	        char *buffer = kmap_atomic(bvec.bv_page) + bvec.bv_offset;
+		sbull_transfer(dev, sector,bytes_to_sectors_checked(bio_cur_bytes(bio)),
 				buffer, bio_data_dir(bio) == WRITE);
-		sector += bio_cur_bytes(bio) >> 9;
-		__bio_kunmap_atomic(buffer, KM_USER0);
+		sector += (bytes_to_sectors_checked(bio_cur_bytes(bio)));
+		kunmap_atomic(bio);
 	}
 	return 0; /* Always "succeed" */
 }
+
 
 /*
  * Transfer a full request.
@@ -152,7 +167,7 @@ static int sbull_xfer_request(struct sbull_dev *dev, struct request *req)
     
 	__rq_for_each_bio(bio, req) {
 		sbull_xfer_bio(dev, bio);
-		nsect += bio->bi_size/KERNEL_SECTOR_SIZE;
+		nsect += bio->bi_iter.bi_size/KERNEL_SECTOR_SIZE;
 	}
 	return nsect;
 }
@@ -165,17 +180,19 @@ static int sbull_xfer_request(struct sbull_dev *dev, struct request *req)
 static void sbull_full_request(struct request_queue *q)
 {
 	struct request *req;
-	int sectors_xferred;
 	struct sbull_dev *dev = q->queuedata;
+	int ret;
 
 	while ((req = blk_fetch_request(q)) != NULL) {
-		if (req->cmd_type != REQ_TYPE_FS) {
+		if (blk_rq_is_passthrough(req)) {
 			printk (KERN_NOTICE "Skip non-fs request\n");
-			__blk_end_request(req, -EIO, blk_rq_cur_bytes(req));
-			continue;
+			ret = -EIO;
+			goto done;
 		}
-		sectors_xferred = sbull_xfer_request(dev, req);
-		__blk_end_request(req, 0, sectors_xferred);
+		sbull_xfer_request(dev, req);
+		ret = 0;
+	done:
+		__blk_end_request_all(req, ret);
 	}
 }
 
@@ -184,13 +201,15 @@ static void sbull_full_request(struct request_queue *q)
 /*
  * The direct make request version.
  */
-static void sbull_make_request(struct request_queue *q, struct bio *bio)
+static blk_qc_t sbull_make_request(struct request_queue *q, struct bio *bio)
 {
 	struct sbull_dev *dev = q->queuedata;
 	int status;
 
 	status = sbull_xfer_bio(dev, bio);
-	bio_endio(bio, status);
+	bio->bi_status = status;
+	bio_endio(bio);
+	return BLK_QC_T_NONE;
 }
 
 
@@ -203,7 +222,6 @@ static int sbull_open(struct block_device *bdev, fmode_t mode)
 	struct sbull_dev *dev = bdev->bd_disk->private_data;
 
 	del_timer_sync(&dev->timer);
-	//filp->private_data = dev;
 	spin_lock(&dev->lock);
 	if (! dev->users) 
 		check_disk_change(bdev);
@@ -224,6 +242,7 @@ static void sbull_release(struct gendisk *disk, fmode_t mode)
 		add_timer(&dev->timer);
 	}
 	spin_unlock(&dev->lock);
+
 }
 
 /*
@@ -255,9 +274,9 @@ int sbull_revalidate(struct gendisk *gd)
  * The "invalidate" function runs out of the device timer; it sets
  * a flag to simulate the removal of the media.
  */
-void sbull_invalidate(unsigned long ldev)
+void sbull_invalidate(struct timer_list *timer)
 {
-	struct sbull_dev *dev = (struct sbull_dev *) ldev;
+	struct sbull_dev *dev = container_of(timer, struct sbull_dev, timer);
 
 	spin_lock(&dev->lock);
 	if (dev->users || !dev->data) 
@@ -271,7 +290,8 @@ void sbull_invalidate(unsigned long ldev)
  * The ioctl() implementation
  */
 
-int sbull_ioctl (struct block_device *bdev, fmode_t mode,
+int sbull_ioctl (struct block_device *bdev,
+		 fmode_t mode,
                  unsigned int cmd, unsigned long arg)
 {
 	long size;
@@ -334,9 +354,7 @@ static void setup_device(struct sbull_dev *dev, int which)
 	/*
 	 * The timer which "invalidates" the device.
 	 */
-	init_timer(&dev->timer);
-	dev->timer.data = (unsigned long) dev;
-	dev->timer.function = sbull_invalidate;
+	timer_setup(&dev->timer, sbull_invalidate, 0);
 	
 	/*
 	 * The I/O queue, depending on whether we are using our own
@@ -434,7 +452,7 @@ static void sbull_exit(void)
 		}
 		if (dev->queue) {
 			if (request_mode == RM_NOQUEUE)
-				kobject_put (&dev->queue->kobj);
+				blk_put_queue(dev->queue);
 			else
 				blk_cleanup_queue(dev->queue);
 		}

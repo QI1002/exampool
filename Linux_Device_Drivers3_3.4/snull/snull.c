@@ -77,6 +77,8 @@ module_param(pool_size, int, 0);
  */
 
 struct snull_priv {
+	struct net_device *dev;
+	struct napi_struct napi;
 	struct net_device_stats stats;
 	int status;
 	struct snull_packet *ppool;
@@ -86,8 +88,6 @@ struct snull_priv {
 	u8 *tx_packetdata;
 	struct sk_buff *skb;
 	spinlock_t lock;
-	struct net_device *dev;
-	struct napi_struct napi;
 };
 
 static void snull_tx_timeout(struct net_device *dev);
@@ -289,10 +289,12 @@ static int snull_poll(struct napi_struct *napi, int budget)
 {
 	int npackets = 0;
 	struct sk_buff *skb;
-	struct snull_priv *priv = container_of(napi, struct snull_priv, napi);
-	struct net_device *dev = priv->dev;
+	struct snull_priv *priv;
 	struct snull_packet *pkt;
+	struct net_device *dev;
     
+	priv = container_of(napi, struct snull_priv, napi);
+	dev = priv->dev;
 	while (npackets < budget && priv->rx_queue) {
 		pkt = snull_dequeue_buf(dev);
 		skb = dev_alloc_skb(pkt->datalen + 2);
@@ -320,7 +322,6 @@ static int snull_poll(struct napi_struct *napi, int budget)
 	if (! priv->rx_queue) {
 		napi_complete(napi);
 		snull_rx_ints(dev, 1);
-		return 0;
 	}
 	/* We couldn't process everything. */
 	return npackets;
@@ -520,7 +521,6 @@ int snull_tx(struct sk_buff *skb, struct net_device *dev)
 		len = ETH_ZLEN;
 		data = shortpkt;
 	}
-	dev->trans_start = jiffies; /* save the timestamp */
 
 	/* Remember the skb, so we can free it at interrupt time */
 	priv->skb = skb;
@@ -539,7 +539,7 @@ void snull_tx_timeout (struct net_device *dev)
 	struct snull_priv *priv = netdev_priv(dev);
 
 	PDEBUG("Transmit timeout at %ld, latency %ld\n", jiffies,
-			jiffies - dev->trans_start);
+			jiffies - netdev_get_tx_queue(dev, 0)->trans_start);
         /* Simulate a transmission interrupt to get things moving */
 	priv->status = SNULL_TX_INTR;
 	snull_interrupt(0, dev, NULL);
@@ -566,21 +566,6 @@ struct net_device_stats *snull_stats(struct net_device *dev)
 {
 	struct snull_priv *priv = netdev_priv(dev);
 	return &priv->stats;
-}
-
-/*
- * This function is called to fill up an eth header, since arp is not
- * available on the interface
- */
-int snull_rebuild_header(struct sk_buff *skb)
-{
-	struct ethhdr *eth = (struct ethhdr *) skb->data;
-	struct net_device *dev = skb->dev;
-    
-	memcpy(eth->h_source, dev->dev_addr, dev->addr_len);
-	memcpy(eth->h_dest, dev->dev_addr, dev->addr_len);
-	eth->h_dest[ETH_ALEN-1]   ^= 0x01;   /* dest is us xor 1 */
-	return 0;
 }
 
 
@@ -623,20 +608,20 @@ int snull_change_mtu(struct net_device *dev, int new_mtu)
 	return 0; /* success */
 }
 
-static const struct header_ops snull_header_ops = {
-        .create  = snull_header,
-	.rebuild = snull_rebuild_header
+static const struct net_device_ops snull_netdev_ops = {
+	.ndo_open		= snull_open,
+	.ndo_stop		= snull_release,
+	.ndo_set_config		= snull_config,
+	.ndo_start_xmit		= snull_tx,
+	.ndo_do_ioctl		= snull_ioctl,
+	.ndo_get_stats		= snull_stats,
+	.ndo_change_mtu		= snull_change_mtu,
+	.ndo_tx_timeout         = snull_tx_timeout,
 };
 
-static const struct net_device_ops snull_netdev_ops = {
-	.ndo_open            = snull_open,
-	.ndo_stop            = snull_release,
-	.ndo_start_xmit      = snull_tx,
-	.ndo_do_ioctl        = snull_ioctl,
-	.ndo_set_config      = snull_config,
-	.ndo_get_stats       = snull_stats,
-	.ndo_change_mtu      = snull_change_mtu,
-	.ndo_tx_timeout      = snull_tx_timeout
+static const struct header_ops snull_header_ops = {
+	.create 	= snull_header,
+	.cache 		= NULL,
 };
 
 /*
@@ -646,6 +631,16 @@ static const struct net_device_ops snull_netdev_ops = {
 void snull_init(struct net_device *dev)
 {
 	struct snull_priv *priv;
+
+	/*
+	 * Then, initialize the priv field. This encloses the statistics
+	 * and a few private fields.
+	 */
+	priv = netdev_priv(dev);
+	memset(priv, 0, sizeof(struct snull_priv));
+	spin_lock_init(&priv->lock);
+	priv->dev = dev;
+
 #if 0
     	/*
 	 * Make the usual checks: check_region(), probe irq, ...  -ENODEV
@@ -659,23 +654,18 @@ void snull_init(struct net_device *dev)
 	 * hand assignments
 	 */
 	ether_setup(dev); /* assign some of the fields */
+
 	dev->watchdog_timeo = timeout;
-	dev->netdev_ops = &snull_netdev_ops;
-	dev->header_ops = &snull_header_ops;
+	if (use_napi) {
+		netif_napi_add(dev, &priv->napi, snull_poll, 2);
+	}
+
 	/* keep the default flags, just add NOARP */
 	dev->flags           |= IFF_NOARP;
 	dev->features        |= NETIF_F_HW_CSUM;
+	dev->netdev_ops = &snull_netdev_ops;
+	dev->header_ops = &snull_header_ops;
 
-	/*
-	 * Then, initialize the priv field. This encloses the statistics
-	 * and a few private fields.
-	 */
-	priv = netdev_priv(dev);
-	if (use_napi) {
-		netif_napi_add(dev, &priv->napi, snull_poll,2);
-	}
-	memset(priv, 0, sizeof(struct snull_priv));
-	spin_lock_init(&priv->lock);
 	snull_rx_ints(dev, 1);		/* enable receive interrupts */
 	snull_setup_pool(dev);
 }
@@ -716,9 +706,9 @@ int snull_init_module(void)
 	snull_interrupt = use_napi ? snull_napi_interrupt : snull_regular_interrupt;
 
 	/* Allocate the devices */
-	snull_devs[0] = alloc_netdev(sizeof(struct snull_priv), "sn%d",
+	snull_devs[0] = alloc_netdev(sizeof(struct snull_priv), "sn%d", NET_NAME_UNKNOWN,
 			snull_init);
-	snull_devs[1] = alloc_netdev(sizeof(struct snull_priv), "sn%d",
+	snull_devs[1] = alloc_netdev(sizeof(struct snull_priv), "sn%d", NET_NAME_UNKNOWN,
 			snull_init);
 	if (snull_devs[0] == NULL || snull_devs[1] == NULL)
 		goto out;

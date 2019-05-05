@@ -2,7 +2,7 @@
 #DEBUG = y
 
 
-# Add your debugging flag (or not) to CFLAGS
+# Add your debugging flag (or not) to EXTRA_CFLAGS
 ifeq ($(DEBUG),y)
   DEBFLAGS = -O -g -DSBULL_DEBUG # "-O" is needed to expand inlines
 else
@@ -30,7 +30,7 @@ endif
 
 
 clean:
-	rm -rf *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions
+	rm -rf *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions .*.mk Module.symvers modules.order
 
 depend .depend dep:
 	$(CC) $(EXTRA_CFLAGS) -M *.c > .depend
