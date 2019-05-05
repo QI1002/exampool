@@ -24,9 +24,10 @@
 #include <linux/errno.h>	/* error codes */
 #include <linux/types.h>	/* size_t */
 #include <linux/proc_fs.h>
-#include <linux/seq_file.h>
 #include <linux/fcntl.h>	/* O_ACCMODE */
 #include <linux/aio.h>
+#include <linux/uio.h>
+#include <linux/seq_file.h>
 #include <linux/uaccess.h>
 #include "sculld.h"		/* local definitions */
 
@@ -167,8 +168,8 @@ struct sculld_dev *sculld_follow(struct sculld_dev *dev, int n)
  * Data management: read and write
  */
 
-ssize_t sculld_read (struct file *filp, char __user *buf, size_t count,
-                loff_t *f_pos)
+ssize_t sculld_do_read (struct file *filp, char __user *buf, size_t count,
+                loff_t *f_pos, int aio)
 {
 	struct sculld_dev *dev = filp->private_data; /* the first listitem */
 	struct sculld_dev *dptr;
@@ -199,9 +200,16 @@ ssize_t sculld_read (struct file *filp, char __user *buf, size_t count,
 	if (count > quantum - q_pos)
 		count = quantum - q_pos; /* read only up to the end of this quantum */
 
-	if (copy_to_user (buf, dptr->data[s_pos]+q_pos, count)) {
-		retval = -EFAULT;
-		goto nothing;
+	if (aio) {
+		if (memcpy (buf, dptr->data[s_pos]+q_pos, count)) {
+			retval = -EFAULT;
+			goto nothing;
+		}
+	} else {
+		if (copy_to_user (buf, dptr->data[s_pos]+q_pos, count)) {
+			retval = -EFAULT;
+			goto nothing;
+		}
 	}
 	up (&dev->sem);
 
@@ -213,10 +221,15 @@ ssize_t sculld_read (struct file *filp, char __user *buf, size_t count,
 	return retval;
 }
 
-
-
-ssize_t sculld_write (struct file *filp, const char __user *buf, size_t count,
+ssize_t sculld_read (struct file *filp, char __user *buf, size_t count,
                 loff_t *f_pos)
+{
+	return sculld_do_read(filp, buf, count, f_pos, 0);
+}
+
+
+ssize_t sculld_do_write (struct file *filp, const char __user *buf, size_t count,
+                loff_t *f_pos, int aio)
 {
 	struct sculld_dev *dev = filp->private_data;
 	struct sculld_dev *dptr;
@@ -252,9 +265,16 @@ ssize_t sculld_write (struct file *filp, const char __user *buf, size_t count,
 	}
 	if (count > quantum - q_pos)
 		count = quantum - q_pos; /* write only up to the end of this quantum */
-	if (copy_from_user (dptr->data[s_pos]+q_pos, buf, count)) {
-		retval = -EFAULT;
-		goto nomem;
+	if (aio) {
+		if (memcpy (dptr->data[s_pos]+q_pos, buf, count)) {
+			retval = -EFAULT;
+			goto nomem;
+		}
+	} else {
+		if (copy_from_user (dptr->data[s_pos]+q_pos, buf, count)) {
+			retval = -EFAULT;
+			goto nomem;
+		}
 	}
 	*f_pos += count;
  
@@ -267,6 +287,13 @@ ssize_t sculld_write (struct file *filp, const char __user *buf, size_t count,
   nomem:
 	up (&dev->sem);
 	return retval;
+}
+
+
+ssize_t sculld_write (struct file *filp, const char __user *buf, size_t count,
+                loff_t *f_pos)
+{
+	return sculld_do_write(filp, buf, count, f_pos, 0);
 }
 
 /*
@@ -398,7 +425,6 @@ loff_t sculld_llseek (struct file *filp, loff_t off, int whence)
  * A simple asynchronous I/O implementation.
  */
 
-#if 0
 struct async_work {
 	struct kiocb *iocb;
 	int result;
@@ -408,34 +434,45 @@ struct async_work {
 /*
  * "Complete" an asynchronous operation.
  */
-static void sculld_do_deferred_op(struct work_struct *work)
+static void sculld_do_deferred_op(struct work_struct *p)
 {
-	struct async_work *stuff = container_of(work, struct async_work, work.work);
-	aio_complete(stuff->iocb, stuff->result, 0);
+	struct async_work *stuff = container_of(p, struct async_work, work.work);
+	stuff->iocb->ki_complete(stuff->iocb, stuff->result, 0);
 	kfree(stuff);
 }
 
 
-static int sculld_defer_op(int write, struct kiocb *iocb, const struct iovec *iovec,
-			   unsigned long nr_segs, loff_t pos)
+static int sculld_defer_op(int write, struct kiocb *iocb, struct iov_iter *iter)
 {
 	struct async_work *stuff;
-	size_t result = 0;
-	size_t len = 0;
-	unsigned long seg = 0;
+	char			*buf;
+	size_t total;
+	int result;
+	loff_t *ppos;
+
+	total = iov_iter_count(iter);
+	ppos = &iocb->ki_pos;
+
+	buf = kmalloc(total, GFP_KERNEL);
+	if (unlikely(!buf))
+		return -ENOMEM;
+
 
 	/* Copy now while we can access the buffer */
-	for (seg = 0; seg < nr_segs; seg++){
-		if (write)
-			len = sculld_write(iocb->ki_filp, iovec[seg].iov_base, iovec[seg].iov_len, &pos);
-		else
-			len = sculld_read(iocb->ki_filp, iovec[seg].iov_base, iovec[seg].iov_len, &pos);
+	if (write)
+	{
+		result = copy_from_iter(buf, total, iter);
 
-		if (len < 0)
-			return len;
-
-		result += len;
+		result = sculld_do_write(iocb->ki_filp, buf, result, ppos, 1);
 	}
+	else
+	{
+		result = sculld_do_read(iocb->ki_filp, buf, total, ppos, 1);
+
+		result = copy_to_iter(buf , result, iter);
+	}
+
+	kfree(buf);
 
 	/* If this is a synchronous IOCB, we return our status now. */
 	if (is_sync_kiocb(iocb))
@@ -453,19 +490,17 @@ static int sculld_defer_op(int write, struct kiocb *iocb, const struct iovec *io
 }
 
 
-static ssize_t sculld_aio_read(struct kiocb *iocb, const struct iovec *iovec,
-			       unsigned long nr_segs, loff_t pos)
+static ssize_t sculld_read_iter(struct kiocb *iocb, struct iov_iter *iter)
 {
-	return sculld_defer_op(0, iocb, iovec, nr_segs, pos);
+	return sculld_defer_op(0, iocb, iter);
 }
 
-static ssize_t sculld_aio_write(struct kiocb *iocb, const struct iovec *iovec, 
-				unsigned long nr_segs, loff_t pos)
+static ssize_t sculld_write_iter(struct kiocb *iocb, struct iov_iter *iter)
 {
-	return sculld_defer_op(1, iocb, iovec, nr_segs, pos);
+	return sculld_defer_op(1, iocb, iter);
 }
 
-#endif
+
  
 /*
  * Mmap *is* available, but confined in a different file
@@ -486,8 +521,8 @@ struct file_operations sculld_fops = {
 	.mmap =	     sculld_mmap,
 	.open =	     sculld_open,
 	.release =   sculld_release,
-	//.aio_read =  sculld_aio_read,
-	//.aio_write = sculld_aio_write,
+	.read_iter =  sculld_read_iter,
+	.write_iter = sculld_write_iter,
 };
 
 int sculld_trim(struct sculld_dev *dev)
