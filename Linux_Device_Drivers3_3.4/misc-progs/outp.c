@@ -81,13 +81,16 @@ static int write_one(unsigned int port, unsigned int val, int size)
     lseek(fd, port, SEEK_SET);
     
     if (size == 4) {
-	write(fd, &val, 4);
+	size_t n = write(fd, &val, 4);
+	if (n != 4) fprintf(stderr, "write bytes %lu\n", n);
     } else if (size == 2) {
 	w = val;
-	write(fd, &w, 2);
+	size_t n = write(fd, &w, 2);
+	if (n != 2) fprintf(stderr, "write bytes %lu\n", n);
     } else {
 	b = val;
-	write(fd, &b, 1);
+	size_t n = write(fd, &b, 1);
+	if (n != 1) fprintf(stderr, "write bytes %lu\n", n);
     }
     return 0;
 }
@@ -106,7 +109,8 @@ int main(int argc, char **argv)
         case 'b': case 'p': default:
 	    size = 1;
     }
-    setuid(0); /* if we're setuid, force it on */
+    int res = setuid(0); /* if we're setuid, force it on */
+    if (res) fprintf(stderr, "setuid error\n");
     for (i=1;i<argc-1;i++) {
         if ( sscanf(argv[i], "%x%n", &port, &n) < 1
 	      || n != strlen(argv[i]) ) {

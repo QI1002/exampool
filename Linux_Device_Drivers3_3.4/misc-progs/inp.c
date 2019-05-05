@@ -81,14 +81,14 @@ static int read_and_print_one(unsigned int port,int size)
     lseek(fd, port, SEEK_SET);
     
     if (size == 4) {
-	read(fd, &l, 4);
-	printf("%04x: 0x%08x\n", port, l);
+	size_t n = read(fd, &l, 4);
+	printf("%04x: 0x%08x with bytes = %lu\n", port, l, n);
     } else if (size == 2) {
-	read(fd, &w, 2);
-	printf("%04x: 0x%04x\n", port, w & 0xffff);
+	size_t n = read(fd, &w, 2);
+	printf("%04x: 0x%04x with bytes = %lu\n", port, w & 0xffff, n);
     } else {
-	read(fd, &b, 1);
-	printf("%04x: 0x%02x\n", port, b & 0xff);
+	size_t n = read(fd, &b, 1);
+	printf("%04x: 0x%02x with bytes = %lu\n", port, b & 0xff, n);
     }
     return 0;
 }
@@ -109,7 +109,8 @@ int main(int argc, char **argv)
 	    size = 1;
     }
 
-    setuid(0); /* if we're setuid, force it on */
+    int res = setuid(0); /* if we're setuid, force it on */
+    if (res) fprintf(stderr, "setuid error\n");
     for (i = 1; i < argc; i++) {
         if ( sscanf(argv[i], "%x%n", &port, &n) < 1
 	      || n != strlen(argv[i]) ) {

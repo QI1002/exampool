@@ -112,7 +112,7 @@ struct vm_operations_struct scullv_vm_ops = {
 int scullv_mmap(struct file *filp, struct vm_area_struct *vma)
 {
         /* it's better to have the below checking */
-#if 0
+#if 1
         struct inode *inode = filp->f_path.dentry->d_inode;
 
         /* refuse to map if order is not 0 */
