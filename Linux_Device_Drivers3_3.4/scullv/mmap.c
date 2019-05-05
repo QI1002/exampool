@@ -111,6 +111,14 @@ struct vm_operations_struct scullv_vm_ops = {
 
 int scullv_mmap(struct file *filp, struct vm_area_struct *vma)
 {
+        /* it's better to have the below checking */
+#if 0
+        struct inode *inode = filp->f_path.dentry->d_inode;
+
+        /* refuse to map if order is not 0 */
+        if (scullv_devices[iminor(inode)].order)
+	        return -ENODEV;	
+#endif
 
 	/* don't do anything here: "nopage" will set up page table entries */
 	vma->vm_ops = &scullv_vm_ops;
