@@ -22,15 +22,14 @@
   > C(N) = C(N/2)+N => C(N) = 2N
   > C(N) = 2*C(N/2)+N => C(N) = NlogN
   > C(N) = 2*C(N/2)+1 => C(N) = 2N 
-
-
-TODO: 
-[1]. check the tree traverse implementation of inorder and postorder
+  > sum of log1 .. logN = x,   1/2*NlogN < x < NlogN
+  > gcd complexity : log(xy)
+  >
 
 ==========================================================================================
 [Sort - Chapter 29 Elementary Sorting Algorithms]
 // N = items size, k = key size, d = digit size, r = key range size
- 		         BestO  AvgO WorseO Memory Stable  Compare Swap    Note  	                 
+ 	         BestO  AvgO WorseO Memory Stable  Compare Swap    Note  	                 
 Selection Sort     N^2   N^2   N^2    1      No     N^2/2   N       better for large data but small key 
 Insertion Sort     N	 N^2   N^2    1      Yes    N^2/4   N^2/8   linear for a sorted data and compare = 1/2 swap 
                                                                     due to no obvious swap, its good to implement indirect sort
@@ -54,29 +53,29 @@ merge sort > quick sort > heap sort due to 1 v.s. 1.38 v.s. 2
 	 2. the worst case occurs if the array is sorted
    - modification 
      1. removing recursion - by stack & loop, do large part by stack and small part by loop 
-	    - not let the worse case to let stack size overflow (always ~= logN)  
-	 2. small subfiles - use other sort way like insertion sorting 
-	    - not paritioning and save the average time to 20% and let stack size smaller
-	 3. median of 3 paritioning - sort the middle/left/right item first and use middle to do quicksort
-	    - remove the sential in A[0]
-		- avoid the worse case for quick sort
+        - not let the worse case to let stack size overflow (always ~= logN)  
+     2. small subfiles - use other sort way like insertion sorting 
+        - not paritioning and save the average time to 20% and let stack size smaller
+     3. median of 3 paritioning - sort the middle/left/right item first and use middle to do quicksort
+        - remove the sential in A[0]
+	- avoid the worse case for quick sort
         - reduce the average time to 5%
    - quick selection
-      1. find the median or k-th smallest items 
+     1. find the median or k-th smallest items 
         - if k is smaller, TC = O(kN) if using selection sorting
         - if k is a little large, TC = O(Nlogk) if using priority queue
         - if using quick selection, TC = O(N) and its easy to reduce its recursion by loop	
-	    - the quick selection can be used to binary cases (0, 1) and is used in MSB radix sort, 
+        - the quick selection can be used to binary cases (0, 1) and is used in MSB radix sort, 
 		
 [Sort - Chapter 10 Radix Sorting]
    - how to extract the bits easy ?
      1. remove a bit soon (LSB => MSB) or (MSB =>LSB)
-	 2. test a or a range of bit soon ? 
+     2. test a or a range of bit soon ? 
    - MSB radix sort (radix exchange sort)
      1. recursive and use the skill like in quicksort (it shall be not stable)
      2. benifit is to distinguish the keys if bit is different 	 
      3. worst case in 
-	    A. the key range is limited and distributive in a large range (too many zeros in the begining)	 
+        A. the key range is limited and distributive in a large range (too many zeros in the begining)	 
         B. the array with many equal keys
      4. it will check NlogN bits in radix exchange sort (C(N) = 2*C(N/2)+N)
 	 5. distribution counting can be used for MSB radix sort also (it shall be stable) 	 
