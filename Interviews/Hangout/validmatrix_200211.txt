@@ -1,0 +1,70 @@
+﻿Please use this Google doc during your interview (your interviewer will see what you write here). To free your hands for typing, we recommend using a headset or speakerphone.
+
+Given an array A of length N: A[0]..A[N-1]. Each element A[i] can only be a 0 or 1. 
+If a sub-array only contains 0, we call it valid.
+How many valid sub-arrays are there in A?
+A = [0, 0, 1, 0, 0, 0] 
+
+int valid(vector<int> &a) {
+    int j = 0, k = 0;
+    for(auto t: a) {
+        if (t == 0) ++j;
+        else {
+            k += j*(j+1)/2;
+            j = 0;
+        } 
+    }
+    if (j) k += j*(j+1)/2;
+    return k;
+}
+
+Given a 0-1 matrix A of size NxM. Each element A[i][j] can only be a 0 or 1, where 0<=i<N and 0<=j<M.  If a sub-matrix only contains 0, we call it valid. 
+How many valid matrices are there in A ?
+
+A = 
+1
+0
+0
+0
+1
+0
+
+0
+0
+0
+
+1
+0
+0
+0
+1
+0
+
+1
+1
+1
+
+
+
+
+
+
+
+
+
+// O (N*N*M)
+int valid2D(vector<vector<int>>& A) {
+    int rowc = A.size(); if (rowc == 0) return 0;
+    int colc = A[0].size(); if (colc == 0) return 0;
+    int i, j, k, r = 0;
+    for(i = 0; i < rowc; ++i) {
+        vector<int> &v = A[i];
+        r += valid(v);
+        for(j = i+1; j < rowc; ++j) {
+            for(k = 0; k < colc; ++k) v[k] |= A[j][k]; 
+            r += valid(v);
+       }
+    }
+    return r;
+}
+
