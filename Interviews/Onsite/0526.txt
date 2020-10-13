@@ -1,0 +1,160 @@
+
+
+
+
+
+
+Hi thomas
+
+
+a-e, b-q, d-p, f-f, h-y, i-i, l-l, m-w, n-u, o-o, s-s, x-x, z-z
+
+yeah 
+swims
+
+You can use the method: string getWord(int index) in Dictionary class
+
+Q1. Write a function that outputs all the words in the list that look the same when turned upside down.
+eg. axe, dip, dollop, mow, ...
+
+pod upside => pod 
+
+class Upside {
+private:
+  vector<char> h;
+public:
+  Upside() {
+    h.resize(26);
+    h[‘a'-’a'] = ‘e';
+    h[‘e'-’a'] = ‘a';
+    …..
+  }
+  vector<string> allUpSide(const Dictionary& dict) {
+    vector<string> r;
+    for(int i = 0; ; ++i) {
+        string s = dict.getWord(i);
+        if (s.empty()) break;
+        if (isUpSide(s)) r.emplace_back(s);
+    }
+    return r;
+  }
+  bool isUpSide(const string &s) {
+      int n = s.length(), nn = n/2;
+      for (int i = 0; i < nn; ++i) {
+          char c = s[i]-’a’;
+          if (h[c] != s[n-i-1]) return false;     
+      } 
+      if (n & 1) { // odd length
+         char c = s[nn]-’a’;
+         if (s[nn] != h[c]) return false; 
+      }
+      return true;
+  }
+};  
+
+
+
+Q2. Write a function that outputs all the words that rotate to give a DIFFERENT word that is also in the list.
+eg. am (we), did (pip), held (play), flays (shelf), loom (wool), …
+
+
+
+class Upside2 {
+private:
+  vector<char> h;
+public:
+  Upside2() {
+    h.resize(26);
+    h[‘a'-’a'] = ‘e';
+    h[‘e'-’a'] = ‘a';
+    …..
+  }
+
+  virtual  
+  // “book”?
+  vector<string> allNotUpSide(const Dictionary& dict) {
+    vector<string> r;
+    for(int i = 0; ; ++i) {
+        string s = dict.getWord(i);
+        if (s.empty()) break;
+        if (isNotUpSide(s)) r.emplace_back(s);
+    }
+    return r;
+  }
+  bool isNotUpSide(const string &s) {
+      int n = s.length(), nn = n/2;
+      //for(auto c: s) {
+      //  char c = s[i]-’a’;
+      //  if (h[c] == 0) return false;
+      //}
+      for (int i = 0; i < nn; ++i) {
+          char c = s[i]-’a’;
+          char d = s[n-i-1]-’a’;
+          if (h[c] == 0 || h[d] == 0) return false;
+          if (h[c] != s[n-i-1]) return true;       
+      } 
+      if (n & 1) { // odd length
+         char c = s[nn]-’a’;
+         if (h[c] == 0) return false;
+         if (s[nn] != h[c]) return true; 
+      }
+      return false;
+  }
+};
+
+
+Q3. If you want to provide a module to fulfill different types of datatype, what’s your design?
+
+e.g 1, 8, 0, 2
+e.g 一 王 田 口 
+e.g Some shape could be upside down => enum Sharp 
+e.g. 1 + 5 + 2 ---> 5 + 2 + 1
+e.g. 1 - 2 - 8 
+
+template<typename T>
+class UpsideInf {
+   virtual bool returnUpSide(T a) = 0;
+};
+
+class CharUpsideInf : public UpsideInf<char> {
+      
+}; 
+
+template<typename T> T returnUpSide(T a);
+
+class sharp {
+   
+};  
+
+class sharp2: public sharp {
+public:
+sharp returnUpSide() {
+   const unordered_map<sharp, sharp> m = { {RECT, RECT}, … {CIRCILE…   
+   return m[*this];
+}
+
+}
+
+sharp returnUpSide(sharp a) {
+   const unordered_map<char, char> m = { {RECT, RECT}, … {CIRCILE…   
+   return m[a]
+}
+
+char returnUpSide(char a) {
+  const unordered_map<char, char> m = { {‘a', ‘e'}, … {‘  
+  return m[a] … 
+}
+
+int returnUpSide(int a) {
+  const unordered_map<T, T> m = { {‘a', ‘e'}, … {‘  
+  return m[a
+}
+
+CS returnUpSide(CS a) {
+  const unordered_map<CS, CS> m = { {‘a', ‘e'}, … {‘  
+  return m[a]
+}
+
+=======================
+
+

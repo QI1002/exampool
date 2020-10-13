@@ -1,0 +1,66 @@
+[Exam] We use a string to represent a non-negative integer, for example, ”678”. Please note that the string could be very long. Now we want to add an integer to the numeric string, for example, ”678” + 12, and the expected result is ”680”. Please complete the function "add" below.
+“678” + 1000 
+static void add(char **num, int n) {  
+  char *source = *num;
+  int c = 0;
+  for(int i = strlen(source)-1; i >= 0; --i) {
+     c += a % 10; a = a/10;
+     c += source[i]-’0’; 
+     if (c >= 10) {
+         sources[i] = ‘0'+c-10;
+         c = 1; 
+     } else {
+         sources[i] = ‘0'+c;
+         c = 0;
+     }
+  }
+  a += c;
+  if (n) {
+     string s = to_string(n); 
+     char* d = (char*)malloc(strlen(source)+s.length());
+     memcpy(s.c_str(), d, s.length());
+     memcpy(source, d+s.length(), strlen(source)*size(char));
+     *num = d;
+  }  
+}
+
+static void sub(char **num, int n) {
+    int val = 1, a = 0;
+  char *source = *num;
+    for(int i = strlen(source)-1; i >= 0; --i, val *= 10) {
+      a = (source[i]-’0')*val;
+      if (a >= n) { 
+          a -= n;
+          std::fill(source+i, 0, strlen(source)-i);
+          string s = to_string(a);
+          memcpy(s.c_str(), source+(strlen(source)-s.length()), s.length());
+          break;   
+      else {
+          n -= a;
+      }
+    }
+   if (n) … 
+}
+
+int main(int argc, char **argv) {
+  // Make sure argv[1] is a non-negative integer string, and argv[2] is an integer.
+  if (!validate_args(argc, argv)) {
+    return -1;
+  }
+
+  char *num = strdup(argv[1]);
+  int n = atoi(argv[2]);
+
+  add(&num, n); // When num="678",  n=2 => "680"
+
+  printf("%s\n", num);
+  free(num);
+  return 0;
+}
+
+
+
+
+
+
+
